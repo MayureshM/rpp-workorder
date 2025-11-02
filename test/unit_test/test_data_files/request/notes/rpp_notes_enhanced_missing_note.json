@@ -1,0 +1,15 @@
+{
+  "pk": "workorder:12144808#QNM5",
+  "sk": "notes:validation_error#2025-06-19T14:42:38.625758Z",
+  "NewImage": {
+    "pk": "workorder:12144808#QNM5",
+    "sk": "notes:validation_error#2025-06-19T14:42:38.625758Z",
+    "source": "recon360",
+    "user_id": "test.user@example.com",
+    "type": "validation_test",
+    "work_order_number": "12144808",
+    "sblu": "QNM5",
+    "vin": "1HGBH41JXMN109186",
+    "site_id": "QNM5"
+  }
+}

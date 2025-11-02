@@ -1,0 +1,34 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:16187345#QLM1",
+      "active_tasks": {
+        "created_on": "20231114T182200.072 GMT",
+        "task_name": "Storage"
+      },
+      "auction_id": "QLM1",
+      "completed_tasks": {
+        "completed_on": "20231114T182200.072 GMT",
+        "task_name": "WashAndVac"
+      },
+      "group_code": "CMOV",
+      "href": "https://uat.api.manheim.com/vehiclelifecycle/id/CAG-RECON-WORK-CONSUMERMOVES CM-41004",
+      "item_description": "Wash and Vac Fee",
+      "item_name": "wash_and_vac_fee",
+      "manheim_account_number": "4974484",
+      "oracle_product_code": "RETAILRECON_1018",
+      "original_total_charge": "45",
+      "payer_account_number": "0",
+      "quantity": "1",
+      "quantity_dimension": "flat_fee",
+      "quantity_discount": "0",
+      "sblu": "16187345",
+      "service_name": "WashAndVac",
+      "status": "Completed",
+      "total_charge": "45",
+      "unit_price": "45",
+      "vin": "JM3KE4DY1G0486997",
+      "work_order": "1092366"
+    }
+  ]
+}

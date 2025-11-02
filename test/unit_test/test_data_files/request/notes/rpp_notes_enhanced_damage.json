@@ -1,0 +1,16 @@
+{
+  "pk": "workorder:12144808#QNM5",
+  "sk": "notes:damage#0523#BR#2025-06-17T14:42:38.625758Z",
+  "NewImage": {
+    "pk": "workorder:12144808#QNM5",
+    "sk": "notes:damage#0523#BR#2025-06-17T14:42:38.625758Z",
+    "note": "Test damage note for enhanced notes handler - Damage assessment complete",
+    "source": "recon360",
+    "user_id": "test.user@example.com",
+    "type": "damage",
+    "work_order_number": "12144808",
+    "sblu": "QNM5",
+    "vin": "1HGBH41JXMN109186",
+    "site_id": "QNM5"
+  }
+}

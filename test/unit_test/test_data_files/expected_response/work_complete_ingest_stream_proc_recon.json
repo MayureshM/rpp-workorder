@@ -1,0 +1,12 @@
+{
+    "Records": [
+        {
+            "pk": "workorder:12040298#QNM5",
+            "sk": "workorder:12040298#QNM5",
+            "recon_complete": true,
+            "recon_complete_date": "2025-08-26T14:59:26.801966-04:00",
+            "work_order_complete": true,
+            "work_order_complete_date": "2025-08-26T14:59:26.801966-04:00"
+        }
+    ]
+}

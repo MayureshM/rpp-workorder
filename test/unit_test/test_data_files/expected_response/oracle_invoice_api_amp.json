@@ -1,0 +1,236 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:9870372#PLM1",
+      "sk": "oracleinvoiceconsignmentdetails:36761568#0c196256-5bf4-44e4-8a1a-b0d3345ec14c",
+      "all_holds": [
+        {
+          "hold_name": "NO HOLD"
+        }
+      ],
+      "bill_to_customer_account_number": "4974479",
+      "bill_to_customer_name": "PROJECT AMP",
+      "consignment_id": "36761568",
+      "consignment_location": "PLM1",
+      "consignment_payment_status": "UNPAID",
+      "consignment_reference_id": "workorder:9870372#PLM1#lineItemFee",
+      "consignment_reference_id2": "6641591",
+      "consignment_vin": "1FTEX1CM0DF799476",
+      "due_amount": "125",
+      "due_date": "2024-02-23",
+      "exempt_from_late_fee": true,
+      "invoice_class": "DEBIT",
+      "invoice_date": "2024-02-23",
+      "invoice_details": {
+        "invoice_lines": [
+          {
+            "description": "Facilitation Fee",
+            "invoice_grouping": "Y",
+            "item": "RETAILRECON_1055",
+            "line_date": "2024-02-23T18:49:20.000+00:00",
+            "line_number": "1",
+            "order_line_billable": true,
+            "order_line_status": "CLOSED",
+            "order_line_type": "US SERVICES CHARGE",
+            "quantity": "-1",
+            "source": "ORBITRECON",
+            "tax": "0",
+            "transacted_by": "SCHEDULER",
+            "unit_price": "-125"
+          }
+        ],
+        "invoice_vin": "1FTEX1CM0DF799476",
+        "late_fee_date": "2024-02-23",
+        "payment_status": "UNPAID"
+      },
+      "invoice_id": "93156508",
+      "invoice_location": "PLM1",
+      "invoice_number": "72783323",
+      "invoice_reference_id": "0c196256-5bf4-44e4-8a1a-b0d3345ec14c",
+      "invoice_source": "INVOICE",
+      "invoice_type": "TRADE",
+      "payment_hold": false,
+      "payment_hold_reason": "NO HOLD",
+      "sblu": "9870372",
+      "site_id": "PLM1",
+      "sold_to_customer_account_number": "4974479",
+      "sold_to_customer_name": "PROJECT AMP",
+      "total_amount": "125",
+      "vin": "1FTEX1CM0DF799476"
+    },
+    {
+      "pk": "workorder:9870372#PLM1",
+      "sk": "oracleinvoiceconsignmentdetails:36761568#693b9029-f25b-4017-9cc8-b6aa579ad45b",
+      "all_holds": [
+        {
+          "hold_name": "NO HOLD"
+        }
+      ],
+      "bill_to_customer_account_number": "4974708",
+      "bill_to_customer_name": "PROJECT AMP ABNORMAL BILLING",
+      "consignment_id": "36761568",
+      "consignment_location": "PLM1",
+      "consignment_payment_status": "UNPAID",
+      "consignment_reference_id": "workorder:9870372#PLM1#lineItemFee",
+      "consignment_reference_id2": "6641591",
+      "consignment_vin": "1FTEX1CM0DF799476",
+      "due_amount": "10",
+      "due_date": "2024-02-23",
+      "exempt_from_late_fee": true,
+      "invoice_class": "DEBIT",
+      "invoice_date": "2024-02-23",
+      "invoice_details": {
+        "invoice_lines": [
+          {
+            "description": "Exercise Fee",
+            "invoice_grouping": "Y",
+            "item": "RETAILRECON_1055",
+            "line_date": "2024-02-23T18:55:32.000+00:00",
+            "line_number": "1",
+            "order_line_billable": true,
+            "order_line_status": "CLOSED",
+            "order_line_type": "US SERVICES CHARGE",
+            "quantity": "-1",
+            "source": "ORBITRECON",
+            "tax": "0",
+            "transacted_by": "SCHEDULER",
+            "unit_price": "-10"
+          }
+        ],
+        "invoice_vin": "1FTEX1CM0DF799476",
+        "late_fee_date": "2024-02-23",
+        "payment_status": "UNPAID"
+      },
+      "invoice_id": "93156509",
+      "invoice_location": "PLM1",
+      "invoice_number": "72783319",
+      "invoice_reference_id": "693b9029-f25b-4017-9cc8-b6aa579ad45b",
+      "invoice_source": "INVOICE",
+      "invoice_type": "TRADE",
+      "payment_hold": false,
+      "payment_hold_reason": "NO HOLD",
+      "sblu": "9870372",
+      "site_id": "PLM1",
+      "sold_to_customer_account_number": "4974479",
+      "sold_to_customer_name": "PROJECT AMP",
+      "total_amount": "10",
+      "vin": "1FTEX1CM0DF799476"
+    },
+    {
+      "pk": "workorder:9870372#PLM1",
+      "sk": "oracleinvoiceconsignmentdetails:36761568#6cfb0a9b-9b5e-4e49-8a7d-ffcb0c99f3c5",
+      "all_holds": [
+        {
+          "hold_name": "NO HOLD"
+        }
+      ],
+      "bill_to_customer_account_number": "4974479",
+      "bill_to_customer_name": "PROJECT AMP",
+      "consignment_id": "36761568",
+      "consignment_location": "PLM1",
+      "consignment_payment_status": "UNPAID",
+      "consignment_reference_id": "workorder:9870372#PLM1#lineItemFee",
+      "consignment_reference_id2": "6641591",
+      "consignment_vin": "1FTEX1CM0DF799476",
+      "due_amount": "35",
+      "due_date": "2024-02-23",
+      "exempt_from_late_fee": true,
+      "invoice_class": "DEBIT",
+      "invoice_date": "2024-02-23",
+      "invoice_details": {
+        "invoice_lines": [
+          {
+            "description": "Inspection Fee",
+            "invoice_grouping": "Y",
+            "item": "RETAILRECON_1055",
+            "line_date": "2024-02-23T18:50:55.000+00:00",
+            "line_number": "1",
+            "order_line_billable": true,
+            "order_line_status": "CLOSED",
+            "order_line_type": "US SERVICES CHARGE",
+            "quantity": "-1",
+            "source": "ORBITRECON",
+            "tax": "0",
+            "transacted_by": "SCHEDULER",
+            "unit_price": "-35"
+          }
+        ],
+        "invoice_vin": "1FTEX1CM0DF799476",
+        "late_fee_date": "2024-02-23",
+        "payment_status": "UNPAID"
+      },
+      "invoice_id": "93156510",
+      "invoice_location": "PLM1",
+      "invoice_number": "72783256",
+      "invoice_reference_id": "6cfb0a9b-9b5e-4e49-8a7d-ffcb0c99f3c5",
+      "invoice_source": "INVOICE",
+      "invoice_type": "TRADE",
+      "payment_hold": false,
+      "payment_hold_reason": "NO HOLD",
+      "sblu": "9870372",
+      "site_id": "PLM1",
+      "sold_to_customer_account_number": "4974479",
+      "sold_to_customer_name": "PROJECT AMP",
+      "total_amount": "35",
+      "vin": "1FTEX1CM0DF799476"
+    },
+    {
+      "pk": "workorder:9870372#PLM1",
+      "sk": "oracleinvoiceconsignmentdetails:36761568#f88a51bb-f719-4fcb-9ee2-5e0e305be50c",
+      "all_holds": [
+        {
+          "hold_name": "NO HOLD"
+        }
+      ],
+      "bill_to_customer_account_number": "4974479",
+      "bill_to_customer_name": "PROJECT AMP",
+      "consignment_id": "36761568",
+      "consignment_location": "PLM1",
+      "consignment_payment_status": "UNPAID",
+      "consignment_reference_id": "workorder:9870372#PLM1#lineItemFee",
+      "consignment_reference_id2": "6641591",
+      "consignment_vin": "1FTEX1CM0DF799476",
+      "due_amount": "45",
+      "due_date": "2024-02-23",
+      "exempt_from_late_fee": true,
+      "invoice_class": "DEBIT",
+      "invoice_date": "2024-02-23",
+      "invoice_details": {
+        "invoice_lines": [
+          {
+            "description": "Battery Charging Fee",
+            "invoice_grouping": "Y",
+            "item": "RETAILRECON_1055",
+            "line_date": "2024-02-23T18:51:30.000+00:00",
+            "line_number": "1",
+            "order_line_billable": true,
+            "order_line_status": "CLOSED",
+            "order_line_type": "US SERVICES CHARGE",
+            "quantity": "-1",
+            "source": "ORBITRECON",
+            "tax": "0",
+            "transacted_by": "SCHEDULER",
+            "unit_price": "-45"
+          }
+        ],
+        "invoice_vin": "1FTEX1CM0DF799476",
+        "late_fee_date": "2024-02-23",
+        "payment_status": "UNPAID"
+      },
+      "invoice_id": "93156511",
+      "invoice_location": "PLM1",
+      "invoice_number": "72783310",
+      "invoice_reference_id": "f88a51bb-f719-4fcb-9ee2-5e0e305be50c",
+      "invoice_source": "INVOICE",
+      "invoice_type": "TRADE",
+      "payment_hold": false,
+      "payment_hold_reason": "NO HOLD",
+      "sblu": "9870372",
+      "site_id": "PLM1",
+      "sold_to_customer_account_number": "4974479",
+      "sold_to_customer_name": "PROJECT AMP",
+      "total_amount": "45",
+      "vin": "1FTEX1CM0DF799476"
+    }
+  ]
+}

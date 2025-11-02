@@ -1,0 +1,43 @@
+{
+  "Records": [
+    {
+      "work_order": "6588087",
+      "on_site_repair_status": "",
+      "item_description": "Exercise Fee",
+      "status": "Completed",
+      "unit_price": 10,
+      "asn2": "Not Received",
+      "asn1": "Received",
+      "original_total_charge": 10,
+      "href": "https://uat.api.manheim.com/vehiclelifecycle/id/CAG-RECON-WORK-VEHICLEPROCESS VP-190402",
+      "manheim_account_number": "4974479",
+      "fee_limit": -1,
+      "off_site_repair_status": "",
+      "sblu": "9806507",
+      "oracle_product_code": "RETAILRECON_1055",
+      "group_code": "AMP",
+      "quantity": 1,
+      "payer_account_id": "4974708",
+      "inspection_status": "Not Completed",
+      "label_status": "Applied",
+      "item_name": "exercise_fee",
+      "stop_ship_status": "Resolved",
+      "total_charge": 10,
+      "charging_status": "Needed",
+      "prep_for_departure_status": "Not Completed",
+      "vin": "5XYPG4A36GG625520",
+      "event_id": "7b48c74a-b190-4587-8d5e-da4ba35de2b8",
+      "auction_id": "PLM1",
+      "completed_tasks": {
+        "task_name": "",
+        "completed_on": "'"
+      },
+      "pk": "workorder:9806507#PLM1",
+      "quantity_dimension": "flat_fee",
+      "quantity_discount": 0,
+      "active_tasks": {
+        "task_name": "PreStockIn"
+      }
+    }
+  ]
+}

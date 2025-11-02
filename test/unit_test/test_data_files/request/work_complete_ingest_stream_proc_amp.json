@@ -1,0 +1,150 @@
+{
+  "Records": [
+    {
+      "eventID": "58722aca40627f03a471760aeae79b6e",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "us-east-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1745448763,
+        "Keys": {
+          "sk": {
+            "S": "work:complete#5b63b69fa7da4105b3956bacfdda17cc"
+          },
+          "pk": {
+            "S": "workorder:16187345#QLM1"
+          }
+        },
+        "NewImage": {
+          "dependency_criteria": {
+            "L": [
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:VLC#DPUP#f54dfecb2ed4473993bbf26f220d184e"
+                  },
+                  "pk": {
+                    "S": "workorder:16187345#QLM1"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:STO#DSTOS#fd31028ccfce4a569517543959a8c24b"
+                  },
+                  "pk": {
+                    "S": "workorder:16187345#QLM1"
+                  }
+                }
+              }
+            ]
+          },
+          "complete_date": {
+            "S": "2025-08-26T14:59:26.801966-04:00"
+          },
+          "group_code": {
+            "S": "AMP"
+          },
+          "off_site_repair_status": {
+            "S": ""
+          },
+          "charging_status": {
+            "S": "Completed"
+          },
+          "asn1": {
+            "S": "Received"
+          },
+          "sk": {
+            "S": "work:complete#5b63b69fa7da4105b3956bacfdda17cc"
+          },
+          "stop_ship_status": {
+            "S": ""
+          },
+          "vin": {
+            "S": "JM3KE4DY1G0486997"
+          },
+          "asn2": {
+            "S": "Received"
+          },
+          "href": {
+            "S": "https://integration1.api.manheim.com/vehiclelifecycle/id/CAG-RECON-WORK-VEHICLEPROCESS VP-180031"
+          },
+          "manheim_account_number": {
+            "S": "4974479"
+          },
+          "work_order": {
+            "S": "1092366"
+          },
+          "inspection_status": {
+            "S": "Completed"
+          },
+          "on_site_repair_status": {
+            "S": ""
+          },
+          "is_transfer_vehicle": {
+            "S": "false"
+          },
+          "auction_id": {
+            "S": "QLM1"
+          },
+          "completed_tasks": {
+            "M": {
+              "completedOn": {
+                "S": "20231114T134310.306 GMT"
+              },
+              "taskName": {
+                "S": "PrepForDeparture"
+              }
+            }
+          },
+          "item_name": {
+            "S": "complete"
+          },
+          "include_pick_up_fee": {
+            "S": "false"
+          },
+          "label_status": {
+            "S": "Received"
+          },
+          "active_tasks": {
+            "M": {
+              "taskName": {
+                "S": "Resolved Completed"
+              },
+              "createdOn": {
+                "S": "20231114T134310.306 GMT"
+              }
+            }
+          },
+          "event_id": {
+            "S": "dd030a52-61cc-41eb-8730-06fa03e5ae8k"
+          },
+          "storage_duration": {
+            "S": "10"
+          },
+          "pk": {
+            "S": "workorder:16187345#QLM1"
+          },
+          "prep_for_departure_status": {
+            "S": "Not Completed"
+          },
+          "dealer_pick_up": {
+            "S": "true"
+          },
+          "updated": {
+            "N": "1745448763635.27392578125"
+          },
+          "status": {
+            "S": "Completed"
+          }
+        },
+        "SequenceNumber": "3095300300001555957878621735",
+        "SizeBytes": 1049,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:723760181230:table/rpp-work-complete-ingest/stream/2023-07-11T17:36:23.865"
+    }
+  ]
+}

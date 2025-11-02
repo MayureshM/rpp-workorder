@@ -1,0 +1,36 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:10347031#PLM1",
+      "sk": "repair_labor_status:0061#00#BR#RQ#RP",
+      "action": "Replace",
+      "action_code": "RP",
+      "approved": false,
+      "clock_user": "Sweta.Patil@coxautoinc.com#PLM1",
+      "damage": "Broken",
+      "damage_action": "RP",
+      "damage_code": "BR",
+      "damage_item_code": "0061",
+      "damage_severity": "RQ",
+      "event_name": "INSERT",
+      "event_type": "RECON.LABOR.STATUS",
+      "item": "L Roof",
+      "item_code": "0061",
+      "last_updated_source": "rpp-repair-execution",
+      "no_cr": false,
+      "repair_labor_status": "WC",
+      "repair_labor_status_translated": "Work Completed",
+      "sblu": "10347031",
+      "seller_name": "JUSTICE FEDERAL CREDIT UNION",
+      "severity": "Replacement Required",
+      "severity_code": "RQ",
+      "shop_code": "BODYM",
+      "site_id": "PLM1",
+      "sub_item_code": "00",
+      "updated_by": "Sweta.Patil@coxautoinc.com",
+      "user_id": "Sweta.Patil@coxautoinc.com",
+      "vin": "4T1B11HKXKU736078",
+      "work_order_number": "7034316"
+    }
+  ]
+}

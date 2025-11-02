@@ -1,0 +1,20 @@
+{
+  "Records": [
+    {
+      "category_short_name": "MECHM",
+      "current_status": "EP",
+      "from_as400": false,
+      "last_updated_source": "ecrvcf",
+      "pk": "workorder:4690399#TEST",
+      "sblu": "10134525",
+      "shop_code": "MECHM",
+      "shop_status_code": "EP",
+      "shop_status_description": "Estimate Requested",
+      "site_id": "TEST",
+      "sk": "service_status:MECHM",
+      "updated_by": "RADMIN",
+      "user_id": "UNKNOWN",
+      "work_order_number": "6858105"
+    }
+  ]
+}

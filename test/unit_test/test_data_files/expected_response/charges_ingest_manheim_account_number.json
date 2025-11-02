@@ -1,0 +1,27 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:17029746#QLM1",
+      "sk": "charge:STO#DSTOS#test123",
+      "manheim_account_number": "4995396",
+      "auction_id": "QLM1",
+      "bill_invoice": "later",
+      "charge_datetime": 1744182342660.4458,
+      "charge_line_id": "STO#DSTOS#test123",
+      "event_produced_for_day": "2025-04-08",
+      "expense_code": "9162",
+      "group_code": "RECON",
+      "invoice_end_point": "orbit",
+      "item_description": "Daily Storage - Standard",
+      "orders_type": "RETAIL_RECON_SERVICES",
+      "payer_account_id": "4995396",
+      "quantity": "1",
+      "sblu": "17029746",
+      "system_source": "RETAIL_RECON",
+      "total_charge": "9",
+      "updated": 1744182342660.4363,
+      "vin": "5YFBURHE8GP515314",
+      "work_order": "1812991"
+    }
+  ]
+}

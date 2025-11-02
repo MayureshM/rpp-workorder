@@ -1,0 +1,40 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:17029746#QLM1",
+      "sk": "charge:STO#DSTOS#3a4d87edabcf106fc04bc6e23c6c071f",
+      "aggregate": true,
+      "auction_id": "QLM1",
+      "bill_invoice": "later",
+      "charge_datetime": 1744182342660.4458,
+      "charge_line_id": "STO#DSTOS#3a4d87edabcf106fc04bc6e23c6c071f",
+      "event_produced_for_day": "2025-04-08",
+      "expense_code": "9162",
+      "group_code": "RECON",
+      "invoice_end_point": "orbit",
+      "invoice_strategy": "storage_complete",
+      "is_daily_storage_service": true,
+      "item_description": "Daily Storage - Standard",
+      "manheim_account_number": "4995396",
+      "orders_type": "RETAIL_RECON_SERVICES",
+      "payer_account_id": "4995396",
+      "quantity": "1",
+      "rate_card_pk": "client:4995396#QLM1",
+      "rate_card_sk": "rate_card:STO#DSTOS#1#20170101",
+      "rcx_mapping_req": true,
+      "sblu": "17029746",
+      "service_completed": true,
+      "service_start_date": "20170101",
+      "storage_complete_flag": "",
+      "storage_duration_in_days": "34",
+      "storage_start_date": "2025-03-05",
+      "storage_end_date": "2025-03-06",
+      "system_source": "RETAIL_RECON",
+      "total_charge": "9",
+      "updated": 1744182342660.4363,
+      "upstream_event_id": "rpp-storage:3a4d87ed-abcf-106f-c04b-c6e23c6c071f",
+      "vin": "5YFBURHE8GP515314",
+      "work_order": "1812991"
+    }
+  ]
+}

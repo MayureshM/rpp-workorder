@@ -1,0 +1,20 @@
+{
+  "Records": [
+    {
+      "kinesis": {
+        "kinesisSchemaVersion": "1.0",
+        "partitionKey": "89E93EFB21D172736D181A36F2CB67DB",
+        "sequenceNumber": "49646285261591522760057124500633008011619332427058511874",
+        "data": "eyJhd3NSZWdpb24iOiJ1cy1lYXN0LTEiLCJldmVudElEIjoiMmYyOWViNzAtNmJhMC00OTYzLWEyZDYtMzMxYWMwMDc4NDlhIiwiZXZlbnROYW1lIjoiSU5TRVJUIiwidXNlcklkZW50aXR5IjpudWxsLCJyZWNvcmRGb3JtYXQiOiJhcHBsaWNhdGlvbi9qc29uIiwidGFibGVOYW1lIjoic2FpLXJwcC1jaGFyZ2VzLWluZ2VzdCIsImR5bmFtb2RiIjp7IkFwcHJveGltYXRlQ3JlYXRpb25EYXRlVGltZSI6MTcwMDA4MzE1Njg5MywiS2V5cyI6eyJwayI6eyJTIjoid29ya29yZGVyOjE2MTg3MzQ1I1FMTTEifSwic2siOnsiUyI6ImNoYXJnZTp3YXNoX2FuZF92YWNfZmVlIzUwMDM4MmU2NzE0ZTQ4OWI4NzVkMWFkNTU0N2MzZTJiIn19LCJOZXdJbWFnZSI6eyJ3b3JrX29yZGVyIjp7IlMiOiIxMDkyMzY2In0sIml0ZW1fZGVzY3JpcHRpb24iOnsiUyI6Ildhc2ggYW5kIFZhYyBGZWUifSwic3RhdHVzIjp7IlMiOiJDb21wbGV0ZWQifSwidW5pdF9wcmljZSI6eyJOIjoiNDUifSwib3JpZ2luYWxfdG90YWxfY2hhcmdlIjp7Ik4iOiI0NSJ9LCJocmVmIjp7IlMiOiJodHRwczovL3VhdC5hcGkubWFuaGVpbS5jb20vdmVoaWNsZWxpZmVjeWNsZS9pZC9DQUctUkVDT04tV09SSy1DT05TVU1FUk1PVkVTIENNLTQxMDA0In0sIm1hbmhlaW1fYWNjb3VudF9udW1iZXIiOnsiUyI6IjQ5NzQ0ODQifSwiY2hhcmdlX2RhdGV0aW1lIjp7Ik4iOiIxNzAwMDgzMTU2ODgyLjAzNzg0MTc5Njg3NSJ9LCJzayI6eyJTIjoiY2hhcmdlOndhc2hfYW5kX3ZhY19mZWUjNTAwMzgyZTY3MTRlNDg5Yjg3NWQxYWQ1NTQ3YzNlMmIifSwic2JsdSI6eyJTIjoiMTYxODczNDUifSwib3JhY2xlX3Byb2R1Y3RfY29kZSI6eyJTIjoiUkVUQUlMUkVDT05fMTAxOCJ9LCJncm91cF9jb2RlIjp7IlMiOiJDTU9WIn0sInF1YW50aXR5Ijp7Ik4iOiIxIn0sInNlcnZpY2VfbmFtZSI6eyJTIjoiV2FzaEFuZFZhYyJ9LCJwYXllcl9hY2NvdW50X251bWJlciI6eyJTIjoiMCJ9LCJpdGVtX25hbWUiOnsiUyI6Indhc2hfYW5kX3ZhY19mZWUifSwidXBkYXRlZCI6eyJOIjoiMTcwMDA4MzE1Njg4Mi4wMjU4Nzg5MDYyNSJ9LCJ0b3RhbF9jaGFyZ2UiOnsiTiI6IjQ1In0sInZpbiI6eyJTIjoiSk0zS0U0RFkxRzA0ODY5OTcifSwiYXVjdGlvbl9pZCI6eyJTIjoiUUxNMSJ9LCJjb21wbGV0ZWRfdGFza3MiOnsiTSI6eyJ0YXNrX25hbWUiOnsiUyI6Ildhc2hBbmRWYWMifSwiY29tcGxldGVkX29uIjp7IlMiOiIyMDIzMTExNFQxODIyMDAuMDcyIEdNVCJ9fX0sInF1YW50aXR5X2RpbWVuc2lvbiI6eyJTIjoiZmxhdF9mZWUifSwicXVhbnRpdHlfZGlzY291bnQiOnsiTiI6IjAifSwicGsiOnsiUyI6IndvcmtvcmRlcjoxNjE4NzM0NSNRTE0xIn0sImFjdGl2ZV90YXNrcyI6eyJNIjp7InRhc2tfbmFtZSI6eyJTIjoiU3RvcmFnZSJ9LCJjcmVhdGVkX29uIjp7IlMiOiIyMDIzMTExNFQxODIyMDAuMDcyIEdNVCJ9fX19LCJTaXplQnl0ZXMiOjgwNH0sImV2ZW50U291cmNlIjoiYXdzOmR5bmFtb2RiIn0=",
+        "approximateArrivalTimestamp": 1700083157.193
+      },
+      "eventSource": "aws:kinesis",
+      "eventVersion": "1.0",
+      "eventID": "shardId-000000000000:49646285261591522760057124500633008011619332427058511874",
+      "eventName": "aws:kinesis:record",
+      "invokeIdentityArn": "arn:aws:iam::723760181230:role/acct-managed/sai-rpp-workorder-role",
+      "awsRegion": "us-east-1",
+      "eventSourceARN": "arn:aws:kinesis:us-east-1:723760181230:stream/sai-rpp-charges-ingest-stream/consumer/sai-rpp-charges-ingest-consumer:1700064438"
+    }
+  ]
+}

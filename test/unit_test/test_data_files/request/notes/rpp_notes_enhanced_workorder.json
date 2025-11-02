@@ -1,0 +1,16 @@
+{
+  "pk": "workorder:12144808#QNM5",
+  "sk": "notes:2025-06-18T14:42:38.625758Z",
+  "NewImage": {
+    "pk": "workorder:12144808#QNM5",
+    "sk": "notes:2025-06-18T14:42:38.625758Z",
+    "note": "Test workorder note for enhanced notes handler - General workorder update",
+    "source": "recon360",
+    "user_id": "test.user@example.com",
+    "type": "workorder",
+    "work_order_number": "12144808",
+    "sblu": "QNM5",
+    "vin": "1HGBH41JXMN109186",
+    "site_id": "QNM5"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "Records": [
+    {
+      "work_order": "1092366",
+      "on_site_repair_status": "",
+      "item_description": "Dealer Pick Up Fee",
+      "status": "Completed",
+      "unit_price": "50",
+      "asn2": "Received",
+      "asn1": "Received",
+      "storage_duration": "10",
+      "original_total_charge": "50",
+      "href": "https://uat.api.manheim.com/vehiclelifecycle/id/CAG-RECON-WORK-VEHICLEPROCESS VP-180031",
+      "manheim_account_number": "4974479",
+      "fee_limit": "1",
+      "off_site_repair_status": "",
+      "sblu": "16187345",
+      "dealer_pick_up": "true",
+      "oracle_product_code": "RETAILRECON_1055",
+      "group_code": "AMP",
+      "is_transfer_vehicle": "false",
+      "quantity": "1",
+      "payer_account_id": "4974479",
+      "inspection_status": "Completed",
+      "label_status": "Received",
+      "include_pick_up_fee": "false",
+      "item_name": "dealer_pickup_fee",
+      "stop_ship_status": "",
+      "total_charge": "50",
+      "charging_status": "Completed",
+      "prep_for_departure_status": "Not Completed",
+      "vin": "JM3KE4DY1G0486997",
+      "event_id": "dd030a52-61cc-41eb-8730-06fa03e5ae8f",
+      "auction_id": "QLM1",
+      "completed_tasks": {
+        "task_name": "PrepForDeparture",
+        "completed_on": "20231114T134310.306 GMT"
+      },
+      "pk": "workorder:16187345#QLM1",
+      "quantity_dimension": "flat_fee",
+      "quantity_discount": "0",
+      "active_tasks": {
+        "task_name": "Resolved Completed",
+        "created_on": "20231114T134310.306 GMT"
+      }
+    }
+  ]
+}

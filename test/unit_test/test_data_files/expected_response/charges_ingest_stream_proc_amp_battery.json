@@ -1,0 +1,42 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:16187345#QLM1",
+      "active_tasks": {
+        "created_on": "20231109T143516.219 GMT",
+        "task_name": "Repair"
+      },
+      "asn1": "Received",
+      "asn2": "Not Received",
+      "auction_id": "QLM1",
+      "charging_status": "Completed",
+      "completed_tasks": {
+        "completed_on": "20231109T143516.219 GMT",
+        "task_name": "Charging"
+      },
+      "event_id": "77cbaf9d-0a8e-43fd-9fda-8ed73319d55b",
+      "group_code": "AMP",
+      "href": "https://uat.api.manheim.com/vehiclelifecycle/id/CAG-RECON-WORK-VEHICLEPROCESS VP-177036",
+      "inspection_status": "Completed",
+      "item_description": "Battery Charging Fee",
+      "item_name": "vehicle_charging_fee",
+      "label_status": "",
+      "manheim_account_number": "4974479",
+      "off_site_repair_status": "",
+      "on_site_repair_status": "Needed",
+      "oracle_product_code": "RETAILRECON_1055",
+      "original_total_charge": "45",
+      "prep_for_departure_status": "Not Completed",
+      "quantity": "1",
+      "quantity_dimension": "flat_fee",
+      "quantity_discount": "0",
+      "sblu": "16187345",
+      "status": "Completed",
+      "stop_ship_status": "",
+      "total_charge": "45",
+      "unit_price": "45",
+      "vin": "JM3KE4DY1G0486997",
+      "work_order": "1092366"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:9825563#PLM1",
+      "sk": "repair_labor_status:0520#09#CO#RP#RQ",
+      "action_code": "RP",
+      "approved": false,
+      "charge_type": "L",
+      "damage": "Corrosion",
+      "damage_code": "CO",
+      "item_code": "0520",
+      "last_updated_source": "ecrvcf",
+      "original_status": "M",
+      "original_status_translated": "READY FOR REPAIR",
+      "repair_labor_status": "M",
+      "repair_labor_status_translated": "READY FOR REPAIR",
+      "sblu": "9825563",
+      "severity": "Replacement Required",
+      "severity_code": "RQ",
+      "shop_code": "MECH",
+      "site_id": "PLM1",
+      "sub_item_code": "09",
+      "updated_by": "MPATEL2",
+      "work_order_number": "6604065"
+    }
+  ]
+}

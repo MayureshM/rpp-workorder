@@ -1,0 +1,37 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:16970322#QLM1",
+      "sk": "workorder:16970322#QLM1",
+      "business_unit": "R",
+      "capture_completed_timestamp": "2025-01-06T07:19:18Z",
+      "capture_status": "COMPLETED",
+      "capture_updated": 1736177167.1922588348388671875,
+      "change_status": "U",
+      "check_in_date": "2025-01-06",
+      "company_name": "UCF/SIXT RENTAL RETAIL SALES",
+      "condition_completed_timestamp": "2025-01-06T15:26:04Z",
+      "condition_status": "COMPLETED",
+      "condition_updated": 1736177167.1922452449798583984375,
+      "dealer_number": "4993185",
+      "entity_type": "summary",
+      "group_code": "UCF1",
+      "inspection_platform": "SMART_INSPECT",
+      "manheim_account_number": "4993185",
+      "owner_name": "UCF/SIXT RENTAL RETAIL SALES",
+      "recon_complete": true,
+      "sblu": "16970322",
+      "site_id": "QLM1",
+      "stocked_date": "2025-01-06",
+      "storage_complete": true,
+      "storage_date": "2025-01-01",
+      "updated": 1747255401.641539096832275390625,
+      "updated_consignment": 1736176785.4690988063812255859375,
+      "updated_pf": 1736177168.076743602752685546875,
+      "veh_source_type": "D",
+      "veh_status": "RC",
+      "vin": "2T2BK1BA3FC873492",
+      "work_order_number": "1769414"
+    }
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "Records": [
+    {
+      "eventID": "962a5fbe607d1006a6c9e6860128d456",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "us-east-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1745450307,
+        "Keys": {
+          "sk": {
+            "S": "work:complete#243816e60f4342008a67b08e8529b13e"
+          },
+          "pk": {
+            "S": "workorder:16187345#QLM1"
+          }
+        },
+        "NewImage": {
+          "complete_date": {
+            "S": "2025-08-26T14:59:26.801966-04:00"
+          },
+          "group_code": {
+            "S": "CMOV"
+          },
+          "auction_id": {
+            "S": "QLM1"
+          },
+          "completed_tasks": {
+            "M": {
+              "completedOn": {
+                "S": "20231124T030719.513 GMT"
+              },
+              "taskName": {
+                "S": "Storage"
+              }
+            }
+          },
+          "item_name": {
+            "S": "complete"
+          },
+          "active_tasks": {
+            "M": {
+              "taskName": {
+                "S": ""
+              }
+            }
+          },
+          "payer_account_number": {
+            "S": "4901624"
+          },
+          "sk": {
+            "S": "work:complete#243816e60f4342008a67b08e8529b13e"
+          },
+          "vin": {
+            "S": "JM3KE4DY1G0486997"
+          },
+          "href": {
+            "S": "https://integration1.api.manheim.com/vehiclelifecycle/id/CAG-RECON-WORK-CONSUMERMOVES CM-42001"
+          },
+          "manheim_account_number": {
+            "S": "4974484"
+          },
+          "pk": {
+            "S": "workorder:16187345#QLM1"
+          },
+          "updated": {
+            "N": "1745450307267.115234375"
+          },
+          "work_order": {
+            "S": "1092366"
+          },
+          "status": {
+            "S": "Completed"
+          }
+        },
+        "SequenceNumber": "3095384300002641739825678289",
+        "SizeBytes": 510,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:723760181230:table/rpp-work-complete-ingest/stream/2023-07-11T17:36:23.865"
+    }
+  ]
+}

@@ -1,0 +1,248 @@
+{
+  "Records": [
+    {
+      "eventID": "92ec21591fe001e747bca90278ea8f8d",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "us-east-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1745360379,
+        "Keys": {
+          "sk": {
+            "S": "storage:complete#1745007996348.75244140625"
+          },
+          "pk": {
+            "S": "workorder:12040298#QNM5"
+          }
+        },
+        "NewImage": {
+          "dependency_criteria": {
+            "L": [
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:STO#DSTOS#9a3206f1-deca-e1f5-8bad-84d02f21c4f5"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:MEL#FMI#7644b608-e86f-c5eb-a5d9-3b4d4b69b282"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:INS#RMI#e0c243df-5e01-b7c1-18a4-ef5f6f90042e"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:TIR#TRMAB#8a3206f1-deca-e1f5-8bad-84d02f21c4f5"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              }
+            ]
+          },
+          "complete_date": {
+            "S": "2025-08-26T15:11:50.427337-04:00"
+          },
+          "auction_id": {
+            "S": "QNM5"
+          },
+          "item_name": {
+            "S": "complete"
+          },
+          "sblu": {
+            "S": "12040298"
+          },
+          "event_type": {
+            "S": "RPP"
+          },
+          "sk": {
+            "S": "storage:complete#1745007996348.75244140625"
+          },
+          "vehicle_complete_stage": {
+            "S": "Storage Checked Out"
+          },
+          "vin": {
+            "S": "1C4RJKBG3M8977568"
+          },
+          "manheim_account_number": {
+            "S": "4982449"
+          },
+          "pk": {
+            "S": "workorder:12040298#QNM5"
+          },
+          "updated": {
+            "N": "1745007996352.75244140625"
+          },
+          "vehicle_complete_flag": {
+            "N": "1"
+          },
+          "work_order": {
+            "S": "3521290"
+          },
+          "work_order_create_date": {
+            "S": "15Apr2025"
+          }
+        },
+        "SequenceNumber": "3090711700001458786003975680",
+        "SizeBytes": 1348,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:723760181230:table/rpp-work-complete-ingest/stream/2023-07-11T17:36:23.865"
+    },
+    {
+      "eventID": "62ec21591fe001e747bca90278ea8f8d",
+      "eventName": "INSERT",
+      "eventVersion": "1.1",
+      "eventSource": "aws:dynamodb",
+      "awsRegion": "us-east-1",
+      "dynamodb": {
+        "ApproximateCreationDateTime": 1745360380,
+        "Keys": {
+          "sk": {
+            "S": "work:complete#1745007996350.75244140625"
+          },
+          "pk": {
+            "S": "workorder:12040298#QNM5"
+          }
+        },
+        "NewImage": {
+          "dependency_criteria": {
+            "L": [
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:STO#DSTOS#9a3206f1-deca-e1f5-8bad-84d02f21c4f5"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:MEL#FMI#7644b608-e86f-c5eb-a5d9-3b4d4b69b282"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:INS#RMI#e0c243df-5e01-b7c1-18a4-ef5f6f90042e"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              },
+              {
+                "M": {
+                  "sk": {
+                    "S": "charge:TIR#TRMAB#8a3206f1-deca-e1f5-8bad-84d02f21c4f5"
+                  },
+                  "pk": {
+                    "S": "workorder:12040298#QNM5"
+                  },
+                  "vehicle_complete_flag": {
+                    "N": "1"
+                  }
+                }
+              }
+            ]
+          },
+          "complete_date": {
+            "S": "2025-08-26T15:11:50.427337-04:00"
+          },
+          "auction_id": {
+            "S": "QNM5"
+          },
+          "item_name": {
+            "S": "complete"
+          },
+          "sblu": {
+            "S": "12040298"
+          },
+          "event_type": {
+            "S": "RPP"
+          },
+          "sk": {
+            "S": "work:complete#1745007996350.75244140625"
+          },
+          "vehicle_complete_stage": {
+            "S": "Storage Checked Out"
+          },
+          "vin": {
+            "S": "1C4RJKBG3M8977568"
+          },
+          "manheim_account_number": {
+            "S": "4982449"
+          },
+          "pk": {
+            "S": "workorder:12040298#QNM5"
+          },
+          "updated": {
+            "N": "1745007996354.75244140625"
+          },
+          "vehicle_complete_flag": {
+            "N": "1"
+          },
+          "work_order": {
+            "S": "3521290"
+          },
+          "work_order_create_date": {
+            "S": "15Apr2025"
+          }
+        },
+        "SequenceNumber": "3090711700001458786003975680",
+        "SizeBytes": 1348,
+        "StreamViewType": "NEW_AND_OLD_IMAGES"
+      },
+      "eventSourceARN": "arn:aws:dynamodb:us-east-1:723760181230:table/rpp-work-complete-ingest/stream/2023-07-11T17:36:23.865"
+    }
+  ]
+}

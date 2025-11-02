@@ -1,0 +1,57 @@
+{
+  "Records": [
+    {
+      "pk": "workorder:16187345#QLM1",
+      "auction_id": "QLM1",
+      "color": "Gray",
+      "customer_id": "16310440",
+      "description": "Gray 2010 MERCEDES-B E350W",
+      "fee_limit": "-1",
+      "fuel_type": "6CYLGAS",
+      "group_code": "AMP",
+      "href": "https://integration1.api.manheim.com/consignments/id/248e5a0a-b122-4e3d-b85e-ab58275711f0",
+      "is_transfer_vehicle": "true",
+      "item_description": "RRC Transfer Fee",
+      "item_name": "rrc_transfer_fee",
+      "make": "MERCEDES-B",
+      "manheim_account_number": "4974479",
+      "notes": {
+        "href": "https://integration1.api.manheim.com/notes/consignment/248e5a0a-b122-4e3d-b85e-ab58275711f0"
+      },
+      "offerings": {
+        "href": "https://integration1.api.manheim.com/offerings/consignment/248e5a0a-b122-4e3d-b85e-ab58275711f0"
+      },
+      "offsite": "false",
+      "oracle_product_code": "RETAILRECON_1055",
+      "orders": {
+        "href": "https://integration1.api.manheim.com/orders/consignment/248e5a0a-b122-4e3d-b85e-ab58275711f0"
+      },
+      "original_total_charge": "50",
+      "payer_account_id": "4974708",
+      "quantity": "1",
+      "quantity_dimension": "flat_fee",
+      "quantity_discount": "0",
+      "sblu": "16187345",
+      "status": "CHECKEDIN",
+      "total_charge": "50",
+      "transportations": {
+        "inbound": {
+          "dropoff": {
+            "href": "https://integration1.api.manheim.com/transportations/inbound/dropoff/consignment/248e5a0a-b122-4e3d-b85e-ab58275711f0"
+          }
+        }
+      },
+      "unit": {
+
+      },
+      "unit_price": "50",
+      "updated_on": "20231208",
+      "vehicle_services": {
+        "href": "https://integration1.api.manheim.com/secure/vehicleServices?AuctionCode=PLM1&ConsignmentID=248e5a0a-b122-4e3d-b85e-ab58275711f0&VIN=WDDHF5GB9AA135176&WorkOrder=6346873"
+      },
+      "vin": "JM3KE4DY1G0486997",
+      "work_order": "1092366",
+      "year": "2010"
+    }
+  ]
+}

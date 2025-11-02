@@ -1,0 +1,8 @@
+git+ssh://git@ghe.coxautoinc.com/ReconMVS/rpp-lib.git@master
+git+ssh://git@ghe.coxautoinc.com/ReconMVS/rpp-python-testing-sdk.git@development
+
+
+faker
+pytest
+boto3
+dynamodb_json
