@@ -1,0 +1,222 @@
+
+openapi: 3.0.1
+
+info:
+  title: "RPP Work Order API"
+  description: Recon Production Platform Work Order API
+  version: "1.0"
+
+tags:
+  - name: "rpp-workorder"
+    description: rpp work order api
+
+paths:
+  /workOrder:
+    get:
+      summary: Retrieves work order
+      parameters:
+        - name: workOrderKey
+          in: path
+          schema:
+            type: string
+        - name: workOrderNumber
+          in: path
+          schema:
+            type: string
+        - name: siteId
+          in: path
+          schema:
+            type: string
+      responses:
+        200:
+          description: default response
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/notDefinedSchema"
+      security:
+        - api-gateway-authorizer: []
+      x-amazon-apigateway-request-validator: validate query string parameters and headers
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        uri: { "Fn::If": [ "alias", {"Fn::Sub":  "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AliasName}-rpp-workorder-get-work-order:${AliasName}/invocations"}, {"Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:rpp-workorder-get-work-order:${AliasName}/invocations"}]}
+        credentials:
+          { "Fn::If": [ "alias", { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/acct-managed/${AliasName}-rpp-workorder-gateway-role"}, { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/acct-managed/rpp-workorder-gateway-role"}]}
+        passthroughBehavior: when_no_match
+        httpMethod: POST
+        contentHandling: CONVERT_TO_TEXT
+        responses:
+          default:
+            statusCode: 200
+    options:
+      summary: CORS support
+      description: Enable CORS by returning correct headers
+      tags:
+      - CORS
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Requested-With'"
+              method.response.header.Access-Control-Allow-Methods : "'*'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        '200':
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+
+  /getWODamage:
+    post:
+      summary: Get shop_code of a given damage item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/requestDamage"
+      responses:
+        200:
+          description: default response
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                items:
+                  $ref: "#/components/schemas/notDefinedSchema"
+      security:
+        - api-gateway-authorizer: []
+      x-amazon-apigateway-integration:
+        responses:
+          default:
+            statusCode: "200"
+        uri: { "Fn::If": [ "alias", {"Fn::Sub":  "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AliasName}-rpp-recon-workorder-get-damage:${AliasName}/invocations"}, {"Fn::Sub": "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:rpp-recon-workorder-get-damage:${AliasName}/invocations"}]}
+        passthroughBehavior: "when_no_match"
+        httpMethod: "POST"
+        credentials:
+          { "Fn::If": [ "alias", { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/acct-managed/${AliasName}-rpp-workorder-gateway-role"}, { "Fn::Sub": "arn:aws:iam::${AWS::AccountId}:role/acct-managed/rpp-workorder-gateway-role"}]}
+        type: "aws_proxy"
+    options:
+      summary: CORS support
+      description: Enable CORS by returning correct headers
+      tags:
+        - CORS
+      x-amazon-apigateway-integration:
+        type: mock
+        requestTemplates:
+          application/json: |
+            {
+              "statusCode" : 200
+            }
+        responses:
+          default:
+            statusCode: "200"
+            responseParameters:
+              method.response.header.Access-Control-Allow-Headers : "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Requested-With'"
+              method.response.header.Access-Control-Allow-Methods : "'OPTION, POST, GET, PUT, DELETE'"
+              method.response.header.Access-Control-Allow-Origin : "'*'"
+            responseTemplates:
+              application/json: |
+                {}
+      responses:
+        200:
+          description: Default response for CORS method
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: "string"
+            Access-Control-Allow-Methods:
+              schema:
+                type: "string"
+            Access-Control-Allow-Origin:
+              schema:
+                type: "string"
+
+x-amazon-apigateway-gateway-responses:
+  BAD_REQUEST_BODY:
+    statusCode: 400
+    responseParameters:
+      gatewayresponse.header.Access-Control-Allow-Origin: "'*'"
+    responseTemplates:
+      application/json: '{"success": false, "errorMessage":$context.error.messageString }'
+
+x-amazon-apigateway-request-validators:
+  validate query string parameters and headers:
+    validateRequestParameters: true
+    validateRequestBody: false
+
+components:
+  securitySchemes:
+    api-gateway-authorizer:
+      type: apiKey
+      name: Authorization
+      in: header
+      x-amazon-apigateway-authtype: custom
+      x-amazon-apigateway-authorizer:
+        authorizerUri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:rpp-lambda-authorizer/invocations
+        authorizerCredentials:
+          Fn::Sub: arn:aws:iam::${AWS::AccountId}:role/acct-managed/rpp-workorder-gateway-role
+        identityValidationExpression: ^Bearer [-0-9a-zA-z\\.]*$
+        type: token
+
+  schemas:
+    notDefinedSchema:
+      type: object
+
+    requestDamage:
+      type: object
+      required:
+        - site_id
+        - work_order_number
+        - item_code
+        - damage
+      properties:
+        site_id:
+          type: string
+        work_order_number:
+          type: string
+        item_code:
+          type: string
+        damage:
+          type: string      

@@ -1,0 +1,15 @@
+git+ssh://git@ghe.coxautoinc.com/ReconMVS/rpp-lib.git@master
+
+
+boto3
+dynamodb_json
+aws-xray-sdk
+pytz
+stringcase
+simplejson
+stringcase
+codeguru_profiler_agent
+aws_lambda_powertools
+camel_converter
+voluptuous
+environs

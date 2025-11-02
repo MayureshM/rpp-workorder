@@ -1,0 +1,14 @@
+[project]
+name = "rpp-workorder"
+version = "0.1.0"
+description = "The RPP WorkOrder service"
+dynamic = ["dependencies"]
+readme = "README.md"
+requires-python = ">=3.9"
+
+[tool.black]
+line-length = 88
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["src", "test"]

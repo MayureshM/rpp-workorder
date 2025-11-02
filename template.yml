@@ -1,0 +1,3323 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform:
+  - AWS::Serverless-2016-10-31
+  - rpp-alksify
+  - rpp-auto-tagger
+
+Description: Functions to handle workorders in the recon production platform
+
+Metadata:
+   GlobalTags:
+     - {"Key": "workloadName", "Value": "Recon Inventory"}
+     - {"Key": "workloadCiId", "Value": "CI2361224"}
+     - {"Key": "componentName", "Value": "rpp-workorder"}
+     - {"Key": "componentCiId", "Value": "CI2361465"}
+     - {"Key": "coxauto:ci-id", "Value": "CI2361465"}
+     - {"Key": "repo", "Value": "https://ghe.coxautoinc.com/ReconMVS/rpp-workorder"}
+     - {"Key": "Layer", "Value": "Ingest"}
+     - {"Key": "createdBy", "Value": "CloudFormation"}
+     - {"Key": "ownerEmail", "Value": "ShopOps-Seal@coxautoinc.com"}
+     - {"Key": "department", "Value": "I5 - Vehicle Services - Shop Operations"}
+     - {"Key": "team", "Value": "Seal"}
+
+Parameters:
+  AliasName:
+    Description: Alias to use when creating API and lambda
+    Type: String
+    Default: latest
+
+  AliasLogRetentionInDays:
+    Description: Number of days that alias stack logs are retained
+    Type: Number
+    Default: 14
+
+  AmazonIngestKStreamArn:
+    Description: The arn of the rpp-amazon-ingest kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-amazon-ingest/latest/kinesis/amazon-ingest/stream-arn
+
+  RPPDamageNoCrIngestKinesisStreamArn:
+    Description: The arn of the rpp-damage-ingest kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-damage-ingest/latest/kinesis/stream-arn
+
+  DomainName:
+    Type: String
+    Default: rpp-workorder
+
+  DNSDomainName:
+    Description: Domain for which the api will be added.
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /general/domain
+
+  PublicDNSZoneID:
+    Description: Public ID of the host zone
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /general/zoneid/reconmvs/public
+
+  PrivateDNSZoneID:
+    Description: Private ID of the host zone
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /general/zoneid/reconmvs/private
+
+  ShopViewsTableStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-shop-views/table-stream-arn
+
+  RPPWorkCompleteIngestTableStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-work-complete-ingest/latest/table/stream/arn
+
+  ConsignmentStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-consignment/latest/table/consignment/stream-arn
+
+  OracleInvoiceIDKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-oracle-invoice-kinesis-stream/latest/kinesis/stream-arn
+
+  OrbitIngestIDKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-orbit-ingest-kinesis-stream/latest/kinesis/stream-arn
+
+  OrderApprovalKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-approval/latest/kinesis/order-approval/stream-arn
+
+  OrderCertificationKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-certification/latest/kinesis/order-certification/stream-arn
+
+  OrderConditionKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-condition/latest/kinesis/order-condition/stream-arn
+
+  OrderDetailKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-detail/latest/kinesis/order-detail/stream-arn
+
+  OrderOfferingKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-offering/latest/kinesis/order-offering/stream-arn
+
+  OrderRetailReconKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-retailrecon/latest/kinesis/order-retailrecon/stream-arn
+
+  OrderCaptureKStreamArn:
+    Description: The arn of the rpp-order-capture kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-capture/latest/kinesis/order-capture/stream-arn
+
+  LaborStatusKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-recon-labor-status/latest/kinesis/stream-arn
+
+  ChargesIngestKinesisSteamArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /rpp-charges-ingest/latest/kinesis/stream-arn
+
+  ClientDataIngestKinesisStreamArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /rpp-client-data-ingest/latest/kinesis/stream-arn
+
+  RimsIngestKinesisSteamArn:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /rpp-rims-ingest/latest/kinesis/stream-arn
+
+  VCFEventKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-vcf-event/latest/kinesis/rpp-vcfevent/stream-arn
+
+  WorkCreditKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-work-credit/latest/kinesis/rpp-workcredit/stream-arn
+
+  RetailInspectionIngestKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-ri-ingest/latest/kinesis/stream-arn
+
+  RetailEstimateIngestKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-re-ingest/latest/kinesis/stream-arn
+
+  RejectionKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-rejection/latest/kinesis/stream-arn
+
+  OrderImageStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-image/latest/kinesis/order-image/stream-arn
+
+  FindUnit:
+    Description: Arn of the FIND_UNIT function
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-unit/latest/function/find_unit
+
+  FindOffering:
+    Description: Arn of the FIND_OFFERING function
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-offering/latest/function/find_offering
+
+  FindLaborStatus:
+    Description: Arn of the FIND_LABOR_STATUS function
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-recon-labor-status/latest/function/find_labor_status
+
+  FindWorkCredit:
+    Description: Arn of the FIND_WORK_CREDIT function
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-work-credit/latest/function/find_work_credit
+
+  FindApproval:
+    Description: Name of the find approval lambda function
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /rpp-order-approval/latest/function/find_approval
+
+  LaborCategoryTable:
+    Description: The rpp-labor-category table
+    Type: String
+    Default: "rpp-labor-category"
+
+  SaleEventsTable:
+    Description: The rpp-labor-category table
+    Type: String
+    Default: "rpp-sale-events"
+
+  InventoryProcessorKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-inventory-processor/latest/kinesis/stream-arn
+
+  FindPfvehicle:
+    Description: Name of the find pfvehicle lambda function
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-pfvehicle/latest/function/get_pfvehicle
+
+  FindCapture:
+    Description: Name of the find capture lambda function
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-order-capture/latest/function/find_capture
+
+  RPPPartsIngestStreamArn:
+    Description: The arn of rpp-parts-ingest kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-parts-ingest/latest/table/stream-arn
+
+  RPPLaborIngestKStreamArn:
+    Description: The arn of rpp-labor-ingest kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-labor-ingest/latest/kinesis/stream-arn
+
+
+  RPPRTDynamoKinesisParameter:
+    Description: The arn of rpp-repair-execution table's kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-repair-execution/latest/dynamo/kstream-arn
+
+  LambdaInsightsVersion:
+    Description: Version of LambdaInsights
+    Type: String
+    Default: "14"
+
+  LambdaPythonProfilerVersion:
+    Description: Version of Python Profiler
+    Type: String
+    Default: "11"
+
+  InsightsAlertTopic:
+    Description: Insights Alert SNS Topic Arn
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/rpp-monitoring/alerts/topic/insights"
+
+  CriticalAlertTopic:
+    Description: Critical Alert SNS Topic Arn
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: "/rpp-monitoring/alerts/topic/critical"
+
+  OrderApprovalKSMaxRetry:
+    Description: The maximum number of times to retry when the function returns an error.
+    Type: String
+    Default: 5
+
+  OrderApprovalKSBatchSize:
+    Description: The maximum number of items to retrieve in a single batch.
+    Type: String
+    Default: 500
+
+  OrderApprovalKSPF:
+    Description: The number of batches to process from each shard concurrently.
+    Type: String
+    Default: 10
+
+  ESEndpoint:
+    Description: Elastic search domain Arn
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /es/domain
+
+  ReconOrderApprovalKStreamArn:
+    Description: The arn of the rpp-recon-approval table stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-recon-approval/latest/kinesis/recon-approval/stream-arn
+
+  RcmKStreamArn:
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /ReconMVS/rpp-rcm/latest/kinesis/stream-arn
+
+  RppNotesKStreamArn:
+    Description: The arn of the rpp-notes kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-notes/latest/kinesis/stream-arn
+
+  RPPServiceStatusIngestKStreamArn:
+    Description: The arn of rpp-service-status-ingest kinesis stream
+    Type: "AWS::SSM::Parameter::Value<String>"
+    Default: /rpp-service-status-ingest/latest/kinesis/stream-arn
+
+Mappings:
+  Account:
+    "723760181230":
+      env: "development"
+      logLevel: INFO
+      apiLogLevel: INFO
+      logRetentionInDays: 30
+      pointInTimeRecoveryEnabled: false
+      retentionPeriod: 24
+      logLambdaEvent: true
+    "284730544526":
+      env: "integration"
+      logLevel: DEBUG
+      apiLogLevel: INFO
+      logRetentionInDays: 30
+      pointInTimeRecoveryEnabled: false
+      retentionPeriod: 24
+      logLambdaEvent: true
+    "444779210632":
+      env: "uat"
+      logLevel: DEBUG
+      apiLogLevel: INFO
+      logRetentionInDays: 60
+      pointInTimeRecoveryEnabled: false
+      retentionPeriod: 24
+      logLambdaEvent: true
+    "956505305906":
+      env: "release"
+      logLevel: CRITICAL
+      apiLogLevel: ERROR
+      logRetentionInDays: 60
+      pointInTimeRecoveryEnabled: true
+      retentionPeriod: 48
+      logLambdaEvent: false
+    "920998146600":
+      env: "production"
+      logLevel: CRITICAL
+      apiLogLevel: ERROR
+      logRetentionInDays: 365
+      pointInTimeRecoveryEnabled: true
+      retentionPeriod: 48
+      logLambdaEvent: false
+
+Conditions:
+  alias: !Not [ !Equals [ !Ref AliasName, "latest" ] ]
+
+Globals:
+  Function:
+    Runtime: python3.12
+    AutoPublishAlias: !Ref AliasName
+    Tracing: Active
+    Environment:
+      Variables:
+        WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+        POWERTOOLS_LOGGER_LOG_EVENT: !FindInMap [ Account, !Ref "AWS::AccountId", logLambdaEvent ]
+        RETRY_QUEUE: !Ref RPPWorkorderQueue
+        DL_QUEUE: !Ref RPPWorkorderDLQ
+        AWS_LAMBDA_EXEC_WRAPPER: /opt/codeguru_profiler_lambda_exec
+        AWS_CODEGURU_PROFILER_GROUP_ARN: !GetAtt ProfilingGroup.Arn
+        AWS_CODEGURU_PROFILER_GROUP_NAME: !Ref ProfilingGroup
+        CATEGORY_TABLE: !Ref LaborCategoryTable
+    Layers:
+      - !Sub "arn:aws:lambda:${AWS::Region}:580247275435:layer:LambdaInsightsExtension:${LambdaInsightsVersion}"
+      - !Sub "arn:aws:lambda:${AWS::Region}:157417159150:layer:AWSCodeGuruProfilerPythonAgentLambdaLayer:${LambdaPythonProfilerVersion}"
+
+Resources:
+  RPPWorkorderRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !If [ alias, !Sub "${AliasName}-rpp-workorder-role","rpp-workorder-role" ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub "arn:aws:iam::aws:policy/CloudWatchLambdaInsightsExecutionRolePolicy"
+        - !Sub "arn:aws:iam::aws:policy/AWSXRayDaemonWriteAccess"
+        - !Sub "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+      Policies:
+        - PolicyName: !If [ alias, !Sub "${AliasName}-rpp-workorder-policy", "rpp-workorder-policy" ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - logs:StartQuery
+                  - logs:GetQueryResults
+                  - logs:describeLogGroups
+                  - logs:describeLogStreams
+                Resource:
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*:*'
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*rpp-workorder*'
+                  - !Sub 'arn:aws:logs:*:*:log-group:/aws/lambda-insights:*'
+              - Effect: Allow
+                Action:
+                  - dynamodb:DescribeTable
+                  - dynamodb:UpdateTable
+                  - dynamodb:BatchGetItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:UpdateItem
+                  - dynamodb:ListStreams
+                  - dynamodb:GetShardIterator
+                  - dynamodb:GetRecords
+                  - dynamodb:DescribeStream
+                Resource:
+                  - !GetAtt RPPWorkorderTable.Arn
+                  - !GetAtt RPPWorkorderTable.StreamArn
+                  - !GetAtt RPPReconWorkOrderTable.Arn
+                  - !GetAtt RPPReconWorkOrderTable.StreamArn
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${RPPReconWorkOrderTable}/index/*"
+                  - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/*rpp-workorder/index/*'
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LaborCategoryTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${LaborCategoryTable}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SaleEventsTable}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${SaleEventsTable}/index/*"
+                  - !Ref ShopViewsTableStreamArn
+                  - !Ref RPPWorkCompleteIngestTableStreamArn
+
+              - Effect: Allow
+                Action:
+                  - sqs:ChangeMessageVisibility
+                  - sqs:DeleteMessage
+                  - sqs:ReceiveMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:GetQueueUrl
+                  - sqs:ListQueues
+                  - sqs:SendMessage
+                  - sqs:SendMessageBatch
+                  - sqs:GetQueueUrl
+                Resource:
+                  - !GetAtt RPPWorkorderQueue.Arn
+                  - !GetAtt RPPOrderRetailReconEstimateRetryQueue.Arn
+                  - !GetAtt RPPWorkorderDLQ.Arn
+                  - !GetAtt RPPWorkOrderConsignmnetQueue.Arn
+                  - !GetAtt RPPWorkOrderAggregatelQueue.Arn
+                  - !GetAtt RPPWorkOrderConsignmentDLQ.Arn
+                  - !GetAtt RPPWorkOrderAggregatetDLQ.Arn
+                  - !GetAtt RPPWorkorderRIDLQ.Arn
+                  - !GetAtt RPPWorkorderREDLQ.Arn
+                  - !GetAtt RPPWorkorderRIRetryQueue.Arn
+                  - !GetAtt RPPWorkorderRERetryQueue.Arn
+                  - !GetAtt RPPReconWorkorderRIRetryQueue.Arn
+                  - !GetAtt RPPReconWorkorderRERetryQueue.Arn
+                  - !GetAtt DamageNoCrIngestDLQ.Arn
+                  - !GetAtt DamageNoCrIngestRetryQueue.Arn
+                  - !GetAtt RIMSIngestProcessorDLQ.Arn
+                  - !GetAtt RPPReconWorkorderPartsIngestRetryQueue.Arn
+                  - !GetAtt RPPReconWorkorderPartsIngestDLQ.Arn
+                  - !GetAtt RPPReconWorkorderLaborIngestDLQ.Arn
+                  - !GetAtt CHARGESIngestProcessorDLQ.Arn
+                  - !GetAtt StorageCHARGESIngestProcessorDLQ.Arn
+                  - !GetAtt ClientDataIngestProcessorDLQ.Arn
+                  - !GetAtt RPPReconWorkorderOracleInvoiceDLQ.Arn
+                  - !GetAtt RPPReconWorkorderOrbitIngestDLQ.Arn
+                  - !GetAtt RPPREClockingRetryQueue.Arn
+                  - !GetAtt RPPREClockingDLQ.Arn
+                  - !GetAtt RPPRWOAmazonIngestRetryQueue.Arn
+                  - !GetAtt RPPRWOAmazonIngestDLQ.Arn
+                  - !GetAtt WorkCompleteIngestProcessorDLQ.Arn
+                  - !GetAtt RPPReconWorkorderDLQ.Arn
+                  - !GetAtt RPPReconApprovalKStreamDLQ.Arn
+                  - !GetAtt RPPNotesDLQ.Arn
+                  - !GetAtt RPPWorkCompleteIngestRetryQueue.Arn
+                  - !GetAtt RPPWorkCompleteIngestRetryDLQ.Arn
+                  - !GetAtt RPPReconWorkorderServiceStatusIngestDLQ.Arn
+              - Effect: Allow
+                Action:
+                  - ssm:GetParametersByPath
+                  - ssm:GetParameter
+                Resource:
+                  - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/ReconMVS*"
+              - Effect: Allow
+                Action:
+                  - kms:Encrypt
+                  - kms:Decrypt
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${FindLaborStatus}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${FindUnit}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${FindApproval}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${FindOffering}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${FindWorkCredit}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${FindPfvehicle}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${FindCapture}"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*rpp*"
+              - Effect: Allow
+                Action:
+                  - kinesis:DescribeStream
+                  - kinesis:DescribeStreamSummary
+                  - kinesis:GetRecords
+                  - kinesis:GetShardIterator
+                  - kinesis:ListShards
+                  - kinesis:ListStreams
+                  - kinesis:SubscribeToShard
+                  - kinesis:PutRecord
+                  - kinesis:PutRecords
+                Resource:
+                  - !GetAtt RPPWorkorderStream.Arn
+                  - !Ref OrderApprovalKStreamArn
+                  - !Ref OrderCaptureKStreamArn
+                  - !Ref OrderCertificationKStreamArn
+                  - !Ref OrderConditionKStreamArn
+                  - !Ref OrderDetailKStreamArn
+                  - !Ref OrderOfferingKStreamArn
+                  - !Ref OrderRetailReconKStreamArn
+                  - !Ref LaborStatusKStreamArn
+                  - !Ref RPPDamageNoCrIngestKinesisStreamArn
+                  - !Ref VCFEventKStreamArn
+                  - !Ref WorkCreditKStreamArn
+                  - !Ref ConsignmentStreamArn
+                  - !Ref RetailInspectionIngestKStreamArn
+                  - !Ref RetailEstimateIngestKStreamArn
+                  - !GetAtt RPPReconWorkOrderKinesisStream.Arn
+                  - !Ref InventoryProcessorKStreamArn
+                  - !Ref RejectionKStreamArn
+                  - !Ref OrderImageStreamArn
+                  - !GetAtt RIMSIngestConsumer.ConsumerARN
+                  - !GetAtt CHARGESIngestConsumer.ConsumerARN
+                  - !GetAtt StorageCHARGESIngestConsumer.ConsumerARN
+                  - !Ref ChargesIngestKinesisSteamArn
+                  - !Ref ClientDataIngestKinesisStreamArn
+                  - !Ref RimsIngestKinesisSteamArn
+                  - !Ref RPPPartsIngestStreamArn
+                  - !Ref RPPLaborIngestKStreamArn
+                  - !Ref OracleInvoiceIDKStreamArn
+                  - !Ref OrbitIngestIDKStreamArn
+                  - !Ref RPPRTDynamoKinesisParameter
+                  - !Ref AmazonIngestKStreamArn
+                  - !Ref ReconOrderApprovalKStreamArn
+                  - !Ref RcmKStreamArn
+                  - !Ref RppNotesKStreamArn
+                  - !Ref RPPServiceStatusIngestKStreamArn
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource:
+                  - Fn::Sub: arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:rpp-es*
+
+  APIGatewayRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !If [ alias, !Sub "${AliasName}-rpp-workorder-gateway-role", !Sub "rpp-workorder-gateway-role" ]
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - apigateway.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: !If [ alias, !Sub "${AliasName}-rpp-workorder-gateway-policy", !Sub "rpp-workorder-gateway-policy" ]
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource:
+                  - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*rpp*'
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*rpp-lambda-authorizer*"
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*rpp*"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*rpp-recon*"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*rpp-workorder*"
+                  - !Sub "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:*rpp-lambda-authorizer"
+
+  ProfilingGroup:
+    Type: AWS::CodeGuruProfiler::ProfilingGroup
+    Properties:
+      ProfilingGroupName: !If [ alias, !Sub "${AliasName}-rpp-workorder", !Sub "rpp-workorder" ]
+      ComputePlatform: AWSLambda
+      AgentPermissions:
+        Principals:
+          - !GetAtt RPPWorkorderRole.Arn
+      AnomalyDetectionNotificationConfiguration:
+        - channelUri: !Ref InsightsAlertTopic
+
+  ApiGatewayLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName: !If [alias, !Sub '/aws/apigateway/${AliasName}-rpp-workorder/access-logs', !Sub '/aws/apigateway/rpp-workorder/access-logs']
+      RetentionInDays: !If [
+                          alias,
+                          !Ref AliasLogRetentionInDays,
+                          !FindInMap [ Account, !Ref "AWS::AccountId", logRetentionInDays ]
+                        ]
+
+  API:
+    Type: AWS::Serverless::Api
+    DependsOn: APIGatewayRole
+    Properties:
+      StageName: !Ref AliasName
+      TracingEnabled: true
+      OpenApiVersion: "3.0.0"
+      MethodSettings:
+        - LoggingLevel: !FindInMap [ Account, !Ref "AWS::AccountId", apiLogLevel ]
+          ResourcePath: '/*'
+          HttpMethod: '*'
+          DataTraceEnabled: true
+          MetricsEnabled: true
+      AccessLogSetting:
+        DestinationArn: !GetAtt ApiGatewayLogGroup.Arn
+        Format:
+          '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","caller":"$context.identity.caller","user":"$context.identity.user","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength","method":"$context.httpMethod","path":"$context.resourcePath","requestTimeEpoch":"$context.requestTimeEpoch","resourceId":"$context.resourceId","resourcePath":"$context.resourcePath","stage":"$context.stage","status":"$context.status","latency":"$context.requestLatency","integrationStatus":"$context.integrationStatus","integrationLatency":"$context.integrationLatency","responseLength":"$context.responseLength","errorMessage":"$context.error.message","errorResponseType":"$context.error.responseType","xrayTraceId":"$context.xrayTraceId","accountId":"$context.identity.accountId","apiId":"$context.apiId","authorizer.principalId":"$context.authorizer.principalId","authorizer.claims":"$context.authorizer.claims","authorizer.integration.requestId":"$context.integration.requestId"}'
+      DefinitionBody:
+        Fn::Transform:
+          Name: AWS::Include
+          Parameters:
+            Location: swaggerSpec.yaml
+
+  WebACLAssociation:
+    DependsOn: 
+      - API
+      - APIStage
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn: !Sub 'arn:aws:apigateway:${AWS::Region}::/restapis/${API}/stages/${AliasName}'
+      WebACLArn: '{{resolve:ssm:/rpp-governance/webacl/default/api/Arn}}'
+
+  APICustomDomain:
+    Type: AWS::ApiGateway::DomainName
+    DependsOn:
+      - API
+    Properties:
+      DomainName: !If [ alias, !Sub "${AliasName}-rpp-workorder.${DNSDomainName}", !Sub "rpp-workorder.${DNSDomainName}" ]
+      EndpointConfiguration:
+        Types:
+          - "REGIONAL"
+      RegionalCertificateArn: '{{resolve:ssm:/general/ssl/cert/Arn:1}}'
+
+  APICustomDomainMapping:
+    Type: AWS::ApiGateway::BasePathMapping
+    DependsOn:
+      - APIStage
+    Properties:
+      DomainName: !Ref APICustomDomain
+      RestApiId: !Ref API
+      Stage: !Ref AliasName
+
+  APICustomDomainDNS:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref PublicDNSZoneID
+      RecordSets:
+        - Type: A
+          Name: !Ref APICustomDomain
+          AliasTarget:
+            HostedZoneId: !GetAtt APICustomDomain.RegionalHostedZoneId
+            DNSName: !GetAtt APICustomDomain.RegionalDomainName
+
+  APICustomDomainDNSPrivate:
+    Type: AWS::Route53::RecordSetGroup
+    Properties:
+      HostedZoneId: !Ref PrivateDNSZoneID
+      RecordSets:
+        - Type: A
+          Name: !Ref APICustomDomain
+          AliasTarget:
+            HostedZoneId: !GetAtt APICustomDomain.RegionalHostedZoneId
+            DNSName: !GetAtt APICustomDomain.RegionalDomainName
+
+  RPPWorkorderDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-dl-queue", "rpp-workorder-dl-queue" ]
+
+  RPPReconWorkorderDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-dl-queue", "rpp-recon-workorder-dl-queue" ]
+
+  RPPWorkorderQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-queue", "rpp-workorder-queue" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkorderDLQ.Arn
+        maxReceiveCount: 12
+
+  RPPOrderRetailReconEstimateRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-order-rr-estimate-retry", "rpp-recon-workorder-order-estimate-retry" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkorderDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPWorkorderRIDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-ri-dlq", "rpp-workorder-ri-dlq" ]
+
+  RPPWorkorderRIRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-ri-retry", "rpp-workorder-ri-retry" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkorderRIDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPReconWorkorderRIRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-work-order-ri-retry", "rpp-recon-work-order-ri-retry" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkorderRIDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPReconWorkorderOracleInvoiceDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-oracle-invoice-dlq", "rpp-workorder-oracle-invoice-dlq" ]
+
+  RPPReconWorkorderOrbitIngestDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-orbit-ingest-dlq", "rpp-workorder-orbit-ingest-dlq" ]
+
+  RPPWorkorderREDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-re-dlq", "rpp-workorder-re-dlq" ]
+
+  RPPWorkorderRERetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-workorder-re-retry", "rpp-workorder-re-retry" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkorderREDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPWorkorderOrderOfferingKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-order-offering-kstream-processor", "rpp-workorder-order-offering-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPOrderOffering:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderOfferingKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderOrderOfferingKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderOrderOfferingKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderOracleInvoiceProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: oracle_invoice.handler
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-oracle-invoice-processor", "rpp-recon-workorder-oracle-invoice-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPReconWorkOrderTable
+          DL_QUEUE: !GetAtt RPPReconWorkorderOracleInvoiceDLQ.QueueName
+      Events:
+        RPPOracleInvoice:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OracleInvoiceIDKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkorderOracleInvoiceProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderOracleInvoiceProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderOrbitIngestProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: orbit_invoice.handler
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-orbit-ingest-processor", "rpp-recon-workorder-orbit-ingest-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+          DL_QUEUE: !GetAtt RPPReconWorkorderOrbitIngestDLQ.QueueName
+      Events:
+        OrbitIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrbitIngestIDKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkorderOrbitIngestProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderOrbitIngestProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderOrderDetailKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-order-detail-kstream-processor", "rpp-workorder-order-detail-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPOrderDetail:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderDetailKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderOrderDetailKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderOrderDetailKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderOrderConditionKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-order-condition-kstream-processor","rpp-workorder-order-condition-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPOrderCondition:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderConditionKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderOrderConditionKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderOrderConditionKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderOrderCertificationKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-order-certification-kstream-processor","rpp-workorder-order-certification-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPOrderCertification:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderCertificationKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderOrderCertificationKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderOrderCertificationKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderLaborStatusKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-labor-status-kstream-processor", "rpp-workorder-labor-status-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPLaborStatus:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref LaborStatusKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderLaborStatusKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderLaborStatusKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderOrderApprovalKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-order-approval-kstream-processor","rpp-workorder-order-approval-kstream-processor" ]
+      MemorySize: 3008
+      Timeout: 600
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPOrderApproval:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderApprovalKStreamArn
+            StartingPosition: LATEST
+            MaximumRetryAttempts: !Ref OrderApprovalKSMaxRetry
+            BatchSize: !Ref OrderApprovalKSBatchSize
+            ParallelizationFactor: !Ref OrderApprovalKSPF
+            BisectBatchOnFunctionError: true
+
+  RPPWorkorderOrderApprovalKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderOrderApprovalKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderOrderRetailReconKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-order-retailrecon-kstream-processor", "rpp-workorder-order-retailrecon-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPOrderRetailRecon:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderRetailReconKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderOrderRetailReconKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderOrderRetailReconKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderVCFEventKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-vcf-event-kstream-processor","rpp-workorder-vcf-event-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPVCFEvent:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref VCFEventKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderVCFEventKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderVCFEventKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderWorkCreditKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-work-credit-kstream-processor","rpp-workorder-work-credit-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPWorkCredit:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref WorkCreditKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderWorkCreditKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderWorkCreditKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderRIIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: retail_inspection.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-ri-ingest-kstream-processor", "rpp-workorder-ri-ingest-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderRIDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+          RETRY_QUEUE: !Ref RPPWorkorderRIRetryQueue
+          DL_QUEUE: !Ref RPPWorkorderRIDLQ
+      Events:
+        RPPRetailInspectionIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RetailInspectionIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderRIIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderRIIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderRIIngestQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: retail_inspection.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-ri-ingest-queue-processor", "rpp-workorder-ri-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderRIDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+          RETRY_QUEUE: !Ref RPPWorkorderRIRetryQueue
+          DL_QUEUE: !Ref RPPWorkorderRIDLQ
+      Events:
+        RPPRetailInspectionIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPWorkorderRIRetryQueue.Arn
+            BatchSize: 10
+
+  RPPWorkorderRIIngestQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderRIIngestQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderREIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: retail_estimate.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-re-ingest-kstream-processor", "rpp-workorder-re-ingest-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderREDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+          RETRY_QUEUE: !Ref RPPWorkorderRERetryQueue
+          DL_QUEUE: !Ref RPPWorkorderREDLQ
+      Events:
+        RPPRetailEstimateIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RetailEstimateIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderREIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderREIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderREIngestQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: retail_estimate.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-re-ingest-queue-processor", "rpp-workorder-re-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderREDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+          RETRY_QUEUE: !Ref RPPWorkorderRERetryQueue
+          DL_QUEUE: !Ref RPPWorkorderREDLQ
+      Events:
+        RPPRetailEstimateIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPWorkorderRERetryQueue.Arn
+            BatchSize: 10
+
+  RPPWorkorderREIngestQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderREIngestQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: kinesis.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-stream-processor","rpp-workorder-stream-processor" ]
+      Timeout: 300
+      MemorySize: 2048
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          CHUNK_SIZE: 300
+          FIND_OFFERING: !Ref FindOffering
+          FIND_UNIT: !Ref FindUnit
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPWorkorderStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt RPPWorkorderTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderDynamoStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: dynamodb_stream_to_kinesis_stream.handler
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-dynamo-stream-processor","rpp-recon-workorder-dynamo-stream-processor" ]
+      Timeout: 900
+      MemorySize: 2048
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RECON_WORKORDER_KINESIS_STREAM_ARN: !GetAtt RPPReconWorkOrderKinesisStream.Arn
+      Events:
+        RPPWorkorderStream:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt RPPReconWorkOrderTable.StreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumBatchingWindowInSeconds: 5
+            ParallelizationFactor: 2
+            BisectBatchOnFunctionError: true
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+
+  RPPReconWorkorderDynamoStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderDynamoStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderDynamoStreamProcessorIteratorAgeAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName:
+        !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-dynamo-stream-processor-iterator-age-alarm", "rpp-recon-workorder-dynamo-stream-processor-iterator-age-alarm" ]
+      AlarmDescription: Alarms if Iterator Age goes higher than 60 seconds
+      Namespace: AWS/Lambda
+      MetricName: IteratorAge
+      Dimensions:
+        - Name: FunctionName
+          Value: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-dynamo-stream-processor", "rpp-recon-workorder-dynamo-stream-processor" ]
+      Statistic: Average
+      Period: 300
+      Threshold: 60000
+      EvaluationPeriods: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref CriticalAlertTopic
+      InsufficientDataActions:
+        - !Ref CriticalAlertTopic
+
+  RPPWorkorderQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: event_stream.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-queue-processor","rpp-workorder-queue-processor" ]
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          FIND_UNIT: !Ref FindUnit
+          FIND_WORK_CREDIT: !Ref FindWorkCredit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          WORKORDER_QUEUE: !GetAtt RPPWorkorderQueue.QueueName
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+      Events:
+        RPPEventSubscription:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPWorkorderQueue.Arn
+            BatchSize: 10
+
+  RPPWorkorderQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: !If [ alias, !Sub "${AliasName}-rpp-workorder-kinesis-stream", "rpp-workorder-kinesis-stream" ]
+      RetentionPeriodHours: !FindInMap [ Account, !Ref "AWS::AccountId", retentionPeriod ]
+      StreamModeDetails:
+        StreamMode: ON_DEMAND
+
+  RPPFindWorkOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: workorder.find_work_order
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-find-work-order","rpp-workorder-find-work-order" ]
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          WORKORDER_TABLE: !If [ alias, !Sub "${AliasName}-rpp-workorder", "rpp-workorder" ]
+
+  RPPFindWorkOrderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPFindWorkOrder}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPGetWorkOrder:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: workorder.get_work_order
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-get-work-order", "rpp-workorder-get-work-order" ]
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          WORKORDER_TABLE: !If [ alias, !Sub "${AliasName}-rpp-workorder", "rpp-workorder" ]
+      Events:
+        WorkOrderAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref API
+            Path: /workOrder
+            Method: GET
+
+  RPPGetWorkOrderLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPGetWorkOrder}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !If [ alias, !Sub "${AliasName}-rpp-workorder", "rpp-workorder" ]
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: "work_order_key"
+          AttributeType: "S"
+        - AttributeName: "site_id"
+          AttributeType: "S"
+        - AttributeName: "manheim_account_number"
+          AttributeType: "S"
+        - AttributeName: "work_order_number"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "work_order_key"
+          KeyType: "HASH"
+        - AttributeName: "site_id"
+          KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: 'index_manheim_account_number'
+          KeySchema:
+            - AttributeName: "manheim_account_number"
+              KeyType: "HASH"
+            - AttributeName: "site_id"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'KEYS_ONLY'
+        - IndexName: 'index_work_order_number'
+          KeySchema:
+            - AttributeName: "work_order_number"
+              KeyType: "HASH"
+            - AttributeName: "site_id"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !FindInMap [ Account, !Ref "AWS::AccountId", pointInTimeRecoveryEnabled ]
+
+  RPPWorkorderFindWorkorderParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: "String"
+      Name: !Sub "/rpp-workorder/${AliasName}/function/find_workorder"
+      Value: !Ref RPPFindWorkOrder
+      Description: "SSM Parameter for rpp-order-approval table stream arn."
+
+  RPPWorkorderTableStreamParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: "String"
+      Name: !Sub "/ReconMVS/rpp-workorder/${AliasName}/table/workorder/stream-arn"
+      Value: !GetAtt RPPWorkorderTable.StreamArn
+      Description: "SSM Parameter for rpp-workorder table stream arn."
+
+  RPPWorkorderKinesisStreamParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: "String"
+      Name: !Sub "/ReconMVS/rpp-workorder/${AliasName}/kinesis/workorder/stream-arn"
+      Value: !GetAtt RPPWorkorderStream.Arn
+      Description: "SSM Parameter for rpp-workorder kinesis stream arn."
+
+  RPPWorkOrderConsignmentDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-work-order-consignment-dl-queue", "rpp-workorder-consignment-dl-queue" ]
+
+  RPPWorkOrderConsignmnetQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-work-order-consignment-queue", "rpp-workorder-consignment-queue" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkOrderConsignmentDLQ.Arn
+        maxReceiveCount: 12
+
+  RPPWorkOrderAggregatetDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-work-order-aggregate-dl-queue", "rpp-workorder-aggregate-dl-queue" ]
+
+  RPPWorkOrderAggregatelQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-work-order-aggregate-queue", "rpp-workorder-aggregate-queue" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkOrderAggregatetDLQ.Arn
+        maxReceiveCount: 12
+
+  RPPWorkorderConsignmentStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: consignment.process_consignment
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-consignment-processor","rpp-workorder-consignment-processor" ]
+      Timeout: 300
+      MemorySize: 256
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Tracing: Active
+      Environment:
+        Variables:
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          FIND_UNIT: !Ref FindUnit
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          WORK_ORDER_CONSIGNMENT_QUEUE: !GetAtt RPPWorkOrderConsignmnetQueue.QueueName
+      Events:
+        RPPConsignmentStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref ConsignmentStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkorderConsignmentStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderConsignmentStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPRejectionKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: rejection.process_rejection
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-rejection-kstream-processor", rpp-workorder-rejection-kstream-processor ]
+      Timeout: 300
+      MemorySize: 256
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+      Events:
+        RPPRejectionStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RejectionKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPRejectionKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPRejectionKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPOrderImageStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: python3.12
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: order_image.process_order_image
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-order-image-kstream-processor", rpp-workorder-order-image-kstream-processor ]
+      Timeout: 300
+      MemorySize: 256
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+      Events:
+        RPPEstimateAssistantStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderImageStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkOrderDetailKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-order-detail-kstream-processor","rpp-work-order-detail-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPOrderDetail:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderDetailKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkOrderDetailKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkOrderDetailKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkOrderCertificationKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-order-certification-kstream-processor","rpp-work-order-certification-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          STREAM: !Ref RPPWorkorderStream
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPOrderCertification:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderCertificationKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkOrderCertificationKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkOrderCertificationKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkOrderOfferingKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-order-offering-kstream-processor","rpp-work-order-offering-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          STREAM: !Ref RPPWorkorderStream
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPOrderOffering:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderOfferingKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkOrderOfferingKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkOrderOfferingKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkOrderConditionKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-order-condition-kstream-processor","rpp-work-order-condition-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+          FIND_CAPTURE: '{{resolve:ssm:/rpp-order-capture/latest/function/find_capture:1}}'
+      Events:
+        RPPOrderCondition:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderConditionKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkOrderConditionKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkOrderConditionKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderOrderRetailReconKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-work-order-retailrecon-kstream-processor","rpp-recon-work-order-retailrecon-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPOrderRetailRecon:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderRetailReconKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkorderOrderRetailReconKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderOrderRetailReconKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkOrderApprovalKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-order-approval-kstream-processor","rpp-work-order-approval-kstream-processor" ]
+      MemorySize: 3008
+      Timeout: 600
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPOrderApproval:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderApprovalKStreamArn
+            StartingPosition: LATEST
+            MaximumRetryAttempts: !Ref OrderApprovalKSMaxRetry
+            BatchSize: !Ref OrderApprovalKSBatchSize
+            ParallelizationFactor: !Ref OrderApprovalKSPF
+            BisectBatchOnFunctionError: true
+
+  RPPWorkOrderApprovalKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkOrderApprovalKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkOrderVCFEventKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-order-vcf-events-kstream-processor","rpp-work-order-vcf-events-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+      Events:
+        RPPVCFEvent:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref VCFEventKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkOrderVCFEventKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkOrderVCFEventKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkOrderCaptureKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-order-capture-events-kstream-processor","rpp-work-order-capture-events-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPCaptureEvent:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderCaptureKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPWorkOrderCaptureKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkOrderCaptureKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkOrderCreditReconKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-credit-kstream-processor", "rpp-work-credit-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPOrderRetailRecon:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref WorkCreditKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkOrderCreditReconKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkOrderCreditReconKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkLaborStatusReconKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: aggregate_events.process_event
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-labor-status-kstream-processor", "rpp-recon-workorder-labor-status-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Tracing: Active
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          CATEGORY_TABLE: !Ref LaborCategoryTable
+          FIND_UNIT: !Ref FindUnit
+          FIND_APPROVAL: !Ref FindApproval
+          FIND_LABOR_STATUS: !Ref FindLaborStatus
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          QUEUE: !GetAtt RPPWorkOrderAggregatelQueue.QueueName
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          SALE_EVENT_TABLE: !Ref SaleEventsTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        RPPOrderRetailRecon:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref LaborStatusKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkLaborStatusReconKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkLaborStatusReconKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  DamageNoCrIngestRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-damage-no-cr-ingest-retry-queue", "rpp-recon-workorder-damage-no-cr-ingest-retry-queue" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt DamageNoCrIngestDLQ.Arn
+        maxReceiveCount: 5
+
+  DamageNoCrIngestDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-damage-no-cr-ingest-dl-queue", "rpp-recon-workorder-damage-no-cr-ingest-dl-queue" ]
+
+  RPPDamageNoCrIngestQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: damage_no_cr_ingest.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-damage-no-cr-ingest-queue-processor", "rpp-workorder-damage-no-cr-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt DamageNoCrIngestDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPWorkorderTable
+          RETRY_QUEUE: !Ref DamageNoCrIngestRetryQueue
+          DLQ: !Ref DamageNoCrIngestDLQ
+      Events:
+        QueueEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt DamageNoCrIngestRetryQueue.Arn
+            BatchSize: 10
+
+  RPPDamageNoCrIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: damage_no_cr_ingest.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-damage-no-cr-ingest-kstream-processor", "rpp-recon-workorder-damage-no-cr-ingest-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Tracing: Active
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_TABLE: !Ref RPPReconWorkOrderTable
+      Events:
+        Stream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RPPDamageNoCrIngestKinesisStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumRetryAttempts: 5
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt DamageNoCrIngestDLQ.Arn
+
+
+  RPPDamageNoCrIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPDamageNoCrIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderRERetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-re-retry", "rpp-recon-workorder-re-retry" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkorderREDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPReconWorkOrderTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !If [ alias, !Sub "${AliasName}-rpp-recon-work-order", "rpp-recon-work-order" ]
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: "pk"
+          AttributeType: "S"
+        - AttributeName: "sk"
+          AttributeType: "S"
+        - AttributeName: "site_id"
+          AttributeType: "S"
+        - AttributeName: "manheim_account_number"
+          AttributeType: "S"
+        - AttributeName: "work_order_number"
+          AttributeType: "S"
+        - AttributeName: "vin"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "pk"
+          KeyType: "HASH"
+        - AttributeName: "sk"
+          KeyType: "RANGE"
+      GlobalSecondaryIndexes:
+        - IndexName: 'index_sk_pk'
+          KeySchema:
+            - AttributeName: "sk"
+              KeyType: "HASH"
+            - AttributeName: "pk"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'index_site_id_sk'
+          KeySchema:
+            - AttributeName: "site_id"
+              KeyType: "HASH"
+            - AttributeName: "sk"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'index_site_work_order_number'
+          KeySchema:
+            - AttributeName: "site_id"
+              KeyType: "HASH"
+            - AttributeName: "work_order_number"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'index_work_order_number'
+          KeySchema:
+            - AttributeName: "work_order_number"
+              KeyType: "HASH"
+            - AttributeName: "sk"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'index_vin'
+          KeySchema:
+            - AttributeName: "vin"
+              KeyType: "HASH"
+            - AttributeName: "sk"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'index_manheim_account_number'
+          KeySchema:
+            - AttributeName: "manheim_account_number"
+              KeyType: "HASH"
+            - AttributeName: "sk"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'index_site_manheim_account_number'
+          KeySchema:
+            - AttributeName: "site_id"
+              KeyType: "HASH"
+            - AttributeName: "manheim_account_number"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: 'ALL'
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: !FindInMap [ Account, !Ref "AWS::AccountId", pointInTimeRecoveryEnabled ]
+
+  RPPReconWorkOrderKinesisStream:
+    Type: AWS::Kinesis::Stream
+    Properties:
+      Name: !If [ alias, !Sub "${AliasName}-rpp-recon-work-order-stream", "rpp-recon-work-order-stream" ]
+      RetentionPeriodHours: !FindInMap [ Account, !Ref "AWS::AccountId", retentionPeriod ]
+      StreamModeDetails:
+        StreamMode: ON_DEMAND
+
+  RPPReconWorkorderKinesisStreamParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: "String"
+      Name: !Sub "/ReconMVS/rpp-recon-work-order/${AliasName}/kinesis/stream-arn"
+      Value: !GetAtt RPPReconWorkOrderKinesisStream.Arn
+      Description: "SSM Parameter for rpp-recon-work-order kinesis stream arn."
+
+  RPPReconWorkorderAuctionPFEventsProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-auction-pf-events-processor", "rpp-recon-workorder-auction-pf-events-processor" ]
+      Handler: auction_pf_events.process_stream
+      CodeUri: ./build
+      Timeout: 90
+      MemorySize: 1024
+      Tracing: Active
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          FIND_PFVEHICLE: '{{resolve:ssm:/rpp-pfvehicle/latest/function/get_pfvehicle:1}}'
+      Events:
+        Stream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref InventoryProcessorKStreamArn
+            BatchSize: 100
+            StartingPosition: LATEST
+
+  RPPReconWorkorderAuctionPFEventsProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderAuctionPFEventsProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkOrderFind:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Timeout: 300
+      MemorySize: 3008
+      Tracing: Active
+      Handler: recon_work_order.find
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-work-order-find", "rpp-recon-work-order-find" ]
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+
+  RPPReconWorkOrderFindLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkOrderFind}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderREIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: retail_recon_estimate.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-re-ingest-kstream-processor", "rpp-recon-workorder-re-ingest-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderREDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPReconWorkorderRERetryQueue
+          DL_QUEUE: !Ref RPPWorkorderREDLQ
+      Events:
+        RPPReconRetailEstimateIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RetailEstimateIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkorderREIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderREIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderREIngestQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: retail_recon_estimate.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-re-ingest-queue-processor", "rpp-recon-workorder-re-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderREDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPReconWorkorderRERetryQueue
+          DL_QUEUE: !Ref RPPWorkorderREDLQ
+      Events:
+        RPPRetailReconEstimateIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPReconWorkorderRERetryQueue.Arn
+            BatchSize: 10
+
+  RPPReconWorkorderREIngestQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderREIngestQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderRIIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_retail_inspection.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-ri-ingest-kstream-processor", "rpp-recon-workorder-ri-ingest-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderRIDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          RECON_WORK_ORDER_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPReconWorkorderRIRetryQueue
+          DL_QUEUE: !Ref RPPWorkorderRIDLQ
+      Events:
+        RPPRetailInspectionIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RetailInspectionIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkorderRIIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderRIIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderRIIngestKSQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_retail_inspection.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-ri-ingest-queue-processor", "rpp-recon-workorder-ri-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderRIDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          RECON_WORK_ORDER_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPReconWorkorderRIRetryQueue
+          DL_QUEUE: !Ref RPPWorkorderRIDLQ
+      Events:
+        RPPRetailInspectionIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPReconWorkorderRIRetryQueue.Arn
+            BatchSize: 10
+
+  RPPReconWorkorderRIIngestKSQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderRIIngestKSQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPGetConditionsByVin:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: recon_work_order.get_conditions_by_vin
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-get-conditions-by-vin", "rpp-recon-workorder-get-conditions-by-vin" ]
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+
+  RPPGetConditionsByVinLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPGetConditionsByVin}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkOrderGetLabors:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: recon_work_order.get_labors
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-get-labors", "rpp-recon-workorder-get-labors" ]
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+
+  RPPReconWorkOrderGetLaborsLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkOrderGetLabors}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkOrderGetDamage:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_work_order.get_workorder_damage
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-get-damage", "rpp-recon-workorder-get-damage" ]
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+      Events:
+        WorkOrderAPI:
+          Type: Api
+          Properties:
+            RestApiId: !Ref API
+            Path: /getWODamage
+            Method: POST
+
+  RPPReconWorkOrderGetDamageLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkOrderGetDamage}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderOrderRetailReconEstimateKStreamProcessor:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - RPPWorkorderDLQ
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: order_retailrecon_estimate.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-rr-estimate-kstream-processor", "rpp-recon-workorder-rr-estimate-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPOrderRetailReconEstimateRetryQueue
+      Events:
+        RPPOrderRetailRecon:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref OrderRetailReconKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkorderOrderRetailReconEstimateKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderOrderRetailReconEstimateKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderOrderRetailReconEstimateQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: order_retailrecon_estimate.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-rr-estimate-queue-processor", "rpp-recon-workorder-rr-estimate-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkorderDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPOrderRetailReconEstimateRetryQueue
+          DL_QUEUE: !Ref RPPWorkorderDLQ
+      Events:
+        RPPRetailReconEstimateIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPOrderRetailReconEstimateRetryQueue.Arn
+            BatchSize: 10
+
+  RPPReconWorkorderOrderRetailReconEstimateQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderOrderRetailReconEstimateQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RIMSIngestConsumer:
+    Type: AWS::Kinesis::StreamConsumer
+    Properties:
+      StreamARN: !Ref RimsIngestKinesisSteamArn
+      ConsumerName: !If [ alias, !Sub "${AliasName}-rpp-rims-ingest-consumer", "rpp-rims-ingest-consumer" ]
+
+  RIMSIngestProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-rims-ingest-stream-dl-queue", "rpp-rims-ingest-stream-dl-queue" ]
+
+  RIMSIngestProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-rims-ingest-stream-processor", "rpp-rims-ingest-stream-processor" ]
+      CodeUri: ./build
+      Handler: rims_ingest.process_stream
+      Role: !GetAtt RPPWorkorderRole.Arn
+      MemorySize: 1024
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+      Events:
+        ReconWorkOrderStream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt RIMSIngestConsumer.ConsumerARN
+            StartingPosition: LATEST
+            BatchSize: 500
+            MaximumRetryAttempts: 5
+            BisectBatchOnFunctionError: true
+            ParallelizationFactor: 10
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt RIMSIngestProcessorDLQ.Arn
+
+  RIMSIngestProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RIMSIngestProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderPartsIngestDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-parts-ingest-dlq", "rpp-recon-workorder-parts-ingest-dlq" ]
+
+  RPPReconWorkorderPartsIngestRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-parts-retry", "rpp-recon-workorder-parts-retry" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPReconWorkorderPartsIngestDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPReconWorkorderLaborIngestDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-labor-ingest-dlq", "rpp-recon-workorder-labor-ingest-dlq" ]
+
+  RPPWorkCompleteIngestRetryDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-workcomplete-retry-dlq", "rpp-recon-workorder-workcomplete-retry-dlq" ]
+
+  RPPWorkCompleteIngestRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-workcomplete-retry-queue", "rpp-recon-workorder-workcomplete-retry-queue" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPWorkCompleteIngestRetryDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPWorkCompleteIngestRetryQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: work_complete.lambda_handler
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-wo-workcomplete-ingest-queue-processor", "rpp-recon-wo-workcomplete-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPWorkCompleteIngestRetryDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RPP_RECON_WORK_ORDER_TABLE: !Ref RPPReconWorkOrderTable
+          DL_QUEUE: !GetAtt RPPWorkCompleteIngestRetryDLQ.QueueName
+          WCI_RETRY_QUEUE: !GetAtt RPPWorkCompleteIngestRetryQueue.QueueName
+          RETRY_DELAY_SEC: 30
+      Events:
+        RPPWorkCompleteIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPWorkCompleteIngestRetryQueue.Arn
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+
+
+  RPPWorkCompleteIngestRetryQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkCompleteIngestRetryQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderPartsIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_parts_ingest.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-parts-ingest-kstream-processor", "rpp-recon-workorder-parts-ingest-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPReconWorkorderPartsIngestDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RPP_RECON_WORK_ORDER_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPReconWorkorderPartsIngestRetryQueue
+          DL_QUEUE: !Ref RPPReconWorkorderPartsIngestDLQ
+      Events:
+        RPPPartsIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RPPPartsIngestStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+
+  RPPReconWorkorderPartsIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderPartsIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderPartsIngestQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_parts_ingest.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-parts-ingest-queue-processor", "rpp-recon-workorder-parts-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPReconWorkorderPartsIngestDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RPP_RECON_WORK_ORDER_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPReconWorkorderPartsIngestRetryQueue
+          DL_QUEUE: !Ref RPPReconWorkorderPartsIngestDLQ
+      Events:
+        RPPPartsIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPReconWorkorderPartsIngestRetryQueue.Arn
+            BatchSize: 10
+
+  RPPReconWorkorderPartsIngestQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderPartsIngestQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderLaborIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_labor_ingest.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-labor-ingest-kstream-processor", "rpp-recon-workorder-labor-ingest-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPReconWorkorderLaborIngestDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RPP_RECON_WORK_ORDER_TABLE: !Ref RPPReconWorkOrderTable
+          DL_QUEUE: !Ref RPPReconWorkorderLaborIngestDLQ
+      Events:
+        RPPLaborIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RPPLaborIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumRetryAttempts: 5
+
+  RPPReconWorkorderLaborIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderLaborIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  CHARGESIngestConsumer:
+    Type: AWS::Kinesis::StreamConsumer
+    Properties:
+      StreamARN: !Ref ChargesIngestKinesisSteamArn
+      ConsumerName: !If [ alias, !Sub "${AliasName}-rpp-charges-ingest-consumer", "rpp-charges-ingest-consumer" ]
+
+  CHARGESIngestProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-charges-ingest-stream-dl-queue", "rpp-charges-ingest-stream-dl-queue" ]
+
+  CHARGESIngestProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-charges-ingest-stream-processor", "rpp-charges-ingest-stream-processor" ]
+      CodeUri: ./build
+      Handler: charges_ingest.process_stream
+      Role: !GetAtt RPPWorkorderRole.Arn
+      MemorySize: 1024
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          DL_QUEUE: !GetAtt CHARGESIngestProcessorDLQ.QueueName
+      Events:
+        ReconWorkOrderStream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt CHARGESIngestConsumer.ConsumerARN
+            StartingPosition: LATEST
+            BatchSize: 500
+            MaximumRetryAttempts: 5
+            BisectBatchOnFunctionError: true
+            ParallelizationFactor: 10
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt CHARGESIngestProcessorDLQ.Arn
+
+  CHARGESIngestProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${CHARGESIngestProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  StorageCHARGESIngestConsumer:
+    Type: AWS::Kinesis::StreamConsumer
+    Properties:
+      StreamARN: !Ref ChargesIngestKinesisSteamArn
+      ConsumerName: !If [ alias, !Sub "${AliasName}-storage-rpp-charges-ingest-consumer", "rpp-storage-charges-ingest-consumer" ]
+
+  StorageCHARGESIngestProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-storage-charges-ingest-stream-dl-queue", "rpp-storage-charges-ingest-stream-dl-queue" ]
+
+  StorageCHARGESIngestProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-storage-charges-ingest-stream-processor", "rpp-storage-charges-ingest-stream-processor" ]
+      CodeUri: ./build
+      Handler: storage_charges_ingest.process_stream
+      Role: !GetAtt RPPWorkorderRole.Arn
+      MemorySize: 1024
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          DL_QUEUE: !GetAtt StorageCHARGESIngestProcessorDLQ.QueueName
+      Events:
+        ReconWorkOrderStream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt StorageCHARGESIngestConsumer.ConsumerARN
+            StartingPosition: LATEST
+            BatchSize: 500
+            MaximumRetryAttempts: 5
+            BisectBatchOnFunctionError: true
+            ParallelizationFactor: 10
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt StorageCHARGESIngestProcessorDLQ.Arn
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"data":{"eventName":["INSERT","MODIFY"],"dynamodb":{"Keys":{"sk":{"S":[{"prefix":"charge:STO#DSTOS#"}]}},"NewImage":{"is_daily_storage_service":{"BOOL":[true]}}}}}'
+
+  StorageCHARGESIngestProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${StorageCHARGESIngestProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  #  # Store Repair Tracker Clocking data
+  RPPREClockingRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-ri-repair-execution-clocking-queue", "rpp-ri-repair-execution-clocking-queue" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RPPREClockingDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPREClockingDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      VisibilityTimeout: 300
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-ri-repair-execution-clocking-queue-dlq", "rpp-ri-repair-execution-clocking-queue-dlq" ]
+
+  RPPRTClockingStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-ri-repair-execution-clocking-processor", "rpp-ri-repair-execution-clocking-processor" ]
+      Handler: repair_tracker_clocking.process_stream
+      Timeout: 300
+      Tracing: Active
+      MemorySize: 1024
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RETRY_QUEUE: !Ref RPPREClockingRetryQueue
+          DL_QUEUE: !Ref RPPREClockingDLQ
+          ES_ENDPOINT: !Ref ESEndpoint
+      Events:
+        RTDynamoKStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RPPRTDynamoKinesisParameter
+            BatchSize: 100
+            StartingPosition: LATEST
+            FilterCriteria:
+              Filters:
+                - Pattern: "{\"data\": { \"dynamodb\": { \"Keys\": { \"sk\": { \"S\": [ { \"prefix\": \"clock\" } ] } } } } }"
+                - Pattern: "{\"data\": { \"dynamodb\": { \"Keys\": { \"pk\": { \"S\": [ { \"prefix\": \"login:\" } ] } } } } }"
+        ReconWODynamoKStream:
+          Type: Kinesis
+          Properties:
+            Stream: !GetAtt RPPReconWorkOrderKinesisStream.Arn
+            BatchSize: 100
+            StartingPosition: LATEST
+            FilterCriteria:
+              Filters:
+                - Pattern: "{\"data\": { \"dynamodb\": { \"Keys\": { \"sk\": { \"S\": [ { \"prefix\": \"clock_rt\" } ] } } } } }"
+
+  RPPRTClockingStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPRTClockingStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPRTClockingQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: repair_tracker_clocking.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-ri-repair-execution-clocking-queue-processor", "rpp-ri-repair-execution-clocking-queue-processor" ]
+      Timeout: 300
+      MemorySize: 1024
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RETRY_QUEUE: !Ref RPPREClockingRetryQueue
+          DL_QUEUE: !Ref RPPREClockingDLQ
+          ES_ENDPOINT: !Ref ESEndpoint
+      Events:
+        RPPREClockingQueue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPREClockingDLQ.Arn
+            BatchSize: 10
+
+  RPPRTClockingQueueProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPRTClockingQueueProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+  # END of clocking data
+
+  ClientDataIngestProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-client-data-ingest-stream-dl-queue", "rpp-client-data-ingest-stream-dl-queue" ]
+
+  ClientDataIngestProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-client-data-ingest-stream-processor", "rpp-client-data-ingest-stream-processor" ]
+      CodeUri: ./build
+      Handler: client-data-ingest.process_stream
+      Role: !GetAtt RPPWorkorderRole.Arn
+      MemorySize: 1024
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          DL_QUEUE: !GetAtt ClientDataIngestProcessorDLQ.QueueName
+      Events:
+        ClientDataStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref ClientDataIngestKinesisStreamArn
+            StartingPosition: LATEST
+            BatchSize: 500
+            MaximumRetryAttempts: 5
+            BisectBatchOnFunctionError: true
+            ParallelizationFactor: 10
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt ClientDataIngestProcessorDLQ.Arn
+
+  ClientDataIngestProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${ClientDataIngestProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPRWOAmazonIngestDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-wo-amazon-transport-ingest-dlq", "rpp-recon-wo-amazon-transport-ingest-dlq" ]
+
+  RPPRWOAmazonIngestRetryQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-wo-amazon-transport-ingest-retry", "rpp-recon-wo-amazon-transport-ingest-retry" ]
+      VisibilityTimeout: 300
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt   RPPRWOAmazonIngestDLQ.Arn
+        maxReceiveCount: 5
+
+  RPPRWOAmazonIngestDsp:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: amazon_ingest.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-amazon-dsp-kstream-processor", !Sub "rpp-recon-workorder-amazon-dsp-kstream-processor" ]
+      Timeout: 300
+      MemorySize: 2048
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RETRY_QUEUE: !Ref RPPRWOAmazonIngestRetryQueue
+          DL_QUEUE: !Ref RPPRWOAmazonIngestDLQ
+      Events:
+        RPPAmazonIngestStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref AmazonIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"data":{"dynamodb":{"Keys":{"sk":{"S":[{"prefix":"dsp"}]}}}}}'
+
+  RPPRWOAmazonIngestTransport:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: amazon_ingest.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-amazon-transport-ingest", !Sub "rpp-recon-workorder-amazon-transport-ingest" ]
+      Timeout: 300
+      MemorySize: 2048
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          DL_QUEUE: !Ref RPPRWOAmazonIngestDLQ
+          ENV: !FindInMap [ Account, !Ref "AWS::AccountId", env ]
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RETRY_QUEUE: !Ref RPPRWOAmazonIngestRetryQueue
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+      Events:
+        RPPAmazonIngestStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref AmazonIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            FilterCriteria:
+              Filters:
+                - Pattern: '{"data":{"dynamodb":{"Keys":{"sk":{"S":[{"prefix":"transport:"}]}},"NewImage":{"is_inbound":{"BOOL":[true]},"shipper_id":{"S":["4993128","4992734","4973899","4973915"]}}}}}'
+                - Pattern: '{"data":{"dynamodb":{"Keys":{"sk":{"S":[{"prefix":"transport:"}]}},"NewImage":{"is_outbound":{"BOOL":[true]},"shipper_id":{"S":["4993128","4992734","4973899","4973915","4993412"]}}}}}'
+                - Pattern: '{"data":{"dynamodb":{"Keys":{"sk":{"S":[{"prefix":"transport_lp:"}]}},"NewImage":{"manheim_account_number":{"S":["4993412", "4973899"]}}}}}'
+
+  RPPReconWorkorderAmazonIngestQueueProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: amazon_ingest.process_queue
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-amazon-ingest-queue-processor", "rpp-recon-workorder-amazon-ingest-queue-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPRWOAmazonIngestDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          MAX_STREAM_WAIT: 60000
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          RETRY_QUEUE: !Ref RPPRWOAmazonIngestRetryQueue
+          DL_QUEUE: !Ref RPPRWOAmazonIngestDLQ
+      Events:
+        RPPReconWrokOrderAmazonIngestRetry:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RPPRWOAmazonIngestRetryQueue.Arn
+            BatchSize: 10
+
+  WorkCompleteIngestProcessorDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-work-complete-ingest-stream-dl-queue", "rpp-work-complete-ingest-stream-dl-queue" ]
+
+  WorkCompleteIngestProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-work-complete-ingest-stream-processor", "rpp-work-complete-ingest-stream-processor" ]
+      CodeUri: ./build
+      Handler: work_complete.lambda_handler
+      Role: !GetAtt RPPWorkorderRole.Arn
+      MemorySize: 1024
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          DL_QUEUE: !GetAtt WorkCompleteIngestProcessorDLQ.QueueName
+          WCI_RETRY_QUEUE: !GetAtt RPPWorkCompleteIngestRetryQueue.QueueName
+          RETRY_DELAY_SEC: 30
+
+  WorkCompleteIngestProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${WorkCompleteIngestProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconApprovalKStreamDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-approval-kstream-dl-queue",
+                       "rpp-recon-approval-kstream-dl-queue" ]
+
+  RPPReconApprovalKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_approval.process_recon_approval
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-approval-kstream-processor","rpp-recon-approval-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPReconApprovalKStreamDLQ.Arn
+      Environment:
+        Variables:
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          DL_QUEUE: !Ref RPPReconApprovalKStreamDLQ
+      Events:
+        RPPReconOrderApprovalStream:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref ReconOrderApprovalKStreamArn
+            StartingPosition: LATEST
+            MaximumRetryAttempts: 5
+            BatchSize: 100
+            FilterCriteria:
+              Filters:
+                - Pattern: "{\"data\": { \"dynamodb\": { \"Keys\": { \"sk\": { \"S\": [ { \"prefix\": \"approvals\" } ] } } } } }"
+
+  RPPReconApprovalKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconApprovalKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPNotesDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-notes-dlq", "rpp-recon-workorder-notes-dlq" ]
+
+  RPPNotesKStreamHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: notes.handler
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-work-order-notes-kstream-processor", "rpp-recon-work-order-notes-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Events:
+        RPPNotesEvent:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RppNotesKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumRetryAttempts: 5
+            BisectBatchOnFunctionError: true
+            ParallelizationFactor: 10
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt RPPNotesDLQ.Arn
+            FilterCriteria:
+              Filters:
+                - Pattern: "{\"data\": { \"dynamodb\": { \"Keys\": { \"sk\": { \"S\": [ { \"prefix\": \"notes#\" } ] } } } } }"
+
+  RPPNotesKStreamHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPNotesKStreamHandler}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPWorkorderNotesKStreamHandler:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: enhanced_notes.handler
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-workorder-notes-kstream-processor", "rpp-workorder-notes-kstream-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          WORKORDER_AM_TABLE: !Ref RPPReconWorkOrderTable
+      Events:
+        RPPWorkorderNotesEvent:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RppNotesKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumRetryAttempts: 5
+            BisectBatchOnFunctionError: true
+            ParallelizationFactor: 10
+            FunctionResponseTypes:
+              - ReportBatchItemFailures
+            DestinationConfig:
+              OnFailure:
+                Destination: !GetAtt RPPNotesDLQ.Arn
+            FilterCriteria:
+              Filters:
+                - Pattern: "{\"data\": { \"dynamodb\": { \"Keys\": { \"pk\": { \"S\": [ { \"prefix\": \"workorder:\" } ] }, \"sk\": { \"S\": [ { \"prefix\": \"notes:\" } ] } } } } }"
+
+  RPPWorkorderNotesKStreamHandlerLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPWorkorderNotesKStreamHandler}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPReconWorkorderServiceStatusIngestDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-service-status-ingest-dlq", "rpp-recon-workorder-service-status-ingest-dlq" ]
+
+  RPPReconWorkorderServiceStatusIngestKStreamProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      AutoPublishAlias: !Ref AliasName
+      Handler: recon_service_status_ingest.process_stream
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-recon-workorder-service-status-ingest-processor", "rpp-recon-workorder-service-status-ingest-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      DeadLetterQueue:
+        Type: "SQS"
+        TargetArn: !GetAtt RPPReconWorkorderServiceStatusIngestDLQ.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: !FindInMap [ Account, !Ref "AWS::AccountId", logLevel ]
+          RPP_RECON_WORK_ORDER_TABLE: !Ref RPPReconWorkOrderTable
+          DL_QUEUE: !Ref RPPReconWorkorderServiceStatusIngestDLQ
+      Events:
+        RPPServiceStatusIngest:
+          Type: Kinesis
+          Properties:
+            Stream: !Ref RPPServiceStatusIngestKStreamArn
+            StartingPosition: LATEST
+            BatchSize: 100
+            MaximumRetryAttempts: 5
+
+  RPPReconWorkorderServiceStatusIngestKStreamProcessorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Condition: alias
+    Properties:
+      LogGroupName:
+        !Sub "/aws/lambda/${RPPReconWorkorderServiceStatusIngestKStreamProcessor}"
+      RetentionInDays: !Ref AliasLogRetentionInDays
+
+  RPPShopViewsIngestProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./build
+      Handler: shop_views.handler
+      FunctionName: !If [ alias, !Sub "${AliasName}-rpp-shop-views-ingest-processor", "rpp-shop-views-ingest-processor" ]
+      MemorySize: 2048
+      Timeout: 300
+      Role: !GetAtt RPPWorkorderRole.Arn
+      Environment:
+        Variables:
+          LOG_LEVEL: INFO
+          RPPReconWorkOrderTable: !Ref RPPReconWorkOrderTable
+
+  RPPShopViewsEventTrigger:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 5
+      EventSourceArn: !Ref ShopViewsTableStreamArn
+      FunctionName: !GetAtt RPPShopViewsIngestProcessor.Arn
+      StartingPosition: LATEST
+
+  RPPWorkCompleteIngestEventTrigger:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 5
+      EventSourceArn: !Ref RPPWorkCompleteIngestTableStreamArn
+      FunctionName: !GetAtt WorkCompleteIngestProcessor.Arn
+      StartingPosition: LATEST

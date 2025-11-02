@@ -1,0 +1,15 @@
+--extra-index-url https://pip.reconmvs.com
+
+rpp-lib
+boto3
+dynamodb_json
+aws-xray-sdk
+black
+flake8
+isort
+bandit
+ipython
+pycodestyle
+localstack
+awscli-local
+simplejson
